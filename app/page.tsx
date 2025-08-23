@@ -112,11 +112,10 @@ export default function Home() {
           </nav>
           <Button
             onClick={connectWallet}
-            className={`${
-              isConnected
+            className={`${isConnected
                 ? 'bg-green-600 hover:bg-green-700'
                 : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
-            } text-white border-0`}
+              } text-white border-0`}
           >
             {isConnected ? 'Connected' : 'Connect Wallet'}
           </Button>
@@ -131,7 +130,7 @@ export default function Home() {
               The Future of Event Tickets
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed">
-              Secure, transparent, and fraud-proof NFT tickets on the Somnia blockchain. 
+              Secure, transparent, and fraud-proof NFT tickets on the Somnia blockchain.
               Buy, sell, and collect your favorite events as digital memories.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -144,10 +143,9 @@ export default function Home() {
             </div>
           </div>
         </div>
-        
-        {/* Background decoration */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%238B5CF6" fill-opacity="0.1"%3E%3Ccircle cx="7" cy="7" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
       </section>
+      {/* Background decoration */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-purple-900 to-slate-900 opacity-30"></div>
 
       {/* Features Section */}
       <section className="py-16 px-4 bg-black/20 backdrop-blur-sm">
@@ -160,7 +158,7 @@ export default function Home() {
               Experience the next generation of event ticketing with blockchain technology
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
@@ -191,7 +189,7 @@ export default function Home() {
             <p className="text-gray-400 text-lg mb-8">
               Find your next unforgettable experience
             </p>
-            
+
             <div className="max-w-md mx-auto relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <Input
@@ -219,7 +217,7 @@ export default function Home() {
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 </div>
-                
+
                 <CardHeader>
                   <CardTitle className="text-white text-xl line-clamp-2">
                     {event.title}
@@ -228,23 +226,23 @@ export default function Home() {
                     {event.description}
                   </CardDescription>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-4">
                   <div className="flex items-center text-gray-300 text-sm">
                     <Calendar className="h-4 w-4 mr-2" />
                     {new Date(event.date).toLocaleDateString()} at {event.time}
                   </div>
-                  
+
                   <div className="flex items-center text-gray-300 text-sm">
                     <MapPin className="h-4 w-4 mr-2" />
                     {event.location}
                   </div>
-                  
+
                   <div className="flex items-center text-gray-300 text-sm">
                     <Users className="h-4 w-4 mr-2" />
                     {event.available} of {event.total} available
                   </div>
-                  
+
                   <div className="flex items-center justify-between pt-4">
                     <span className="text-2xl font-bold text-purple-400">
                       {event.price}
@@ -275,7 +273,7 @@ export default function Home() {
                 The future of event ticketing on the blockchain. Secure, transparent, and fraud-proof.
               </p>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-white mb-4">Platform</h4>
               <ul className="space-y-2 text-sm text-gray-400">
@@ -285,7 +283,7 @@ export default function Home() {
                 <li><Link href="/verify" className="hover:text-purple-300 transition-colors">Verify Ticket</Link></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-white mb-4">Support</h4>
               <ul className="space-y-2 text-sm text-gray-400">
@@ -295,7 +293,7 @@ export default function Home() {
                 <li><Link href="/status" className="hover:text-purple-300 transition-colors">System Status</Link></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-white mb-4">Network</h4>
               <div className="text-sm text-gray-400">
@@ -306,7 +304,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          
+
           <div className="border-t border-white/10 mt-8 pt-8 text-center text-sm text-gray-400">
             <p>&copy; 2025 NFTicket. Built on blockchain technology for a transparent future.</p>
           </div>
