@@ -1,4 +1,7 @@
 // Web3 utilities for Somnia testnet integration
+import { ethers } from 'ethers';
+import { SOMNIA_TESTNET_CONFIG } from './contracts';
+
 declare global {
   interface Window {
     ethereum?: any;
@@ -53,26 +56,50 @@ export const connectWallet = async () => {
   }
 };
 
-export const getContract = (address: string, abi: any, provider: any) => {
-  // In a real implementation, this would return an ethers.js contract instance
-  return {
-    address,
-    abi,
-    provider,
-    // Mock contract methods
-    mintTicket: async (to: string, tokenURI: string) => {
-      console.log(`Minting ticket to ${to} with metadata ${tokenURI}`);
-      return { hash: '0x123...abc' };
-    },
-    transferFrom: async (from: string, to: string, tokenId: string) => {
-      console.log(`Transferring token ${tokenId} from ${from} to ${to}`);
-      return { hash: '0x456...def' };
-    },
-    ownerOf: async (tokenId: string) => {
-      console.log(`Getting owner of token ${tokenId}`);
-      return '0x789...ghi';
-    },
-  };
+// Get current wallet address
+export const getCurrentAccount = async () => {
+  if (typeof window.ethereum === 'undefined') {
+    return null;
+  }
+  
+  try {
+    const accounts = await window.ethereum.request({
+      method: 'eth_accounts',
+    });
+    return accounts.length > 0 ? accounts[0] : null;
+  } catch (error) {
+    console.error('Failed to get current account:', error);
+    return null;
+  }
+};
+
+// Check if connected to correct network
+export const isConnectedToSomnia = async () => {
+  if (typeof window.ethereum === 'undefined') {
+    return false;
+  }
+  
+  try {
+    const chainId = await window.ethereum.request({
+      method: 'eth_chainId',
+    });
+    return chainId === SOMNIA_TESTNET.chainId;
+  } catch (error) {
+    console.error('Failed to check network:', error);
+    return false;
+  }
+};
+
+// Get wallet balance
+export const getWalletBalance = async (address: string) => {
+  try {
+    const provider = new ethers.JsonRpcProvider('https://dream-rpc.somnia.network');
+    const balance = await provider.getBalance(address);
+    return ethers.formatEther(balance);
+  } catch (error) {
+    console.error('Failed to get wallet balance:', error);
+    return '0';
+  }
 };
 
 // Sample NFT metadata structure
@@ -101,6 +128,10 @@ export const createTicketMetadata = (eventData: any) => {
       {
         trait_type: 'Seat',
         value: 'General Admission',
+      },
+      {
+        trait_type: 'Ticket Number',
+        value: `#${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
       },
     ],
     external_url: 'https://nfticket.com',

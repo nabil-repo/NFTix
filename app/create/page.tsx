@@ -9,8 +9,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, MapPin, Users, DollarSign, Upload, ArrowLeft, Ticket } from 'lucide-react';
 import Link from 'next/link';
+import { useContract } from '@/hooks/useContract';
+import { useRouter } from 'next/navigation';
 
 export default function CreateEvent() {
+  const router = useRouter();
+  const { account, isConnectedToCorrectNetwork, createEvent, isLoading } = useContract();
+  
   const [eventData, setEventData] = useState({
     title: '',
     description: '',
@@ -23,7 +28,6 @@ export default function CreateEvent() {
     image: null
   });
 
-  const [isCreating, setIsCreating] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setEventData(prev => ({
@@ -34,13 +38,62 @@ export default function CreateEvent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsCreating(true);
     
-    // Simulate smart contract deployment
-    setTimeout(() => {
-      setIsCreating(false);
-      alert('Event created successfully! Smart contract deployed.');
-    }, 3000);
+    if (!account || !isConnectedToCorrectNetwork) {
+      alert('Please connect your wallet to Somnia testnet first');
+      return;
+    }
+
+    if (!eventData.title || !eventData.description || !eventData.location || 
+        !eventData.date || !eventData.time || !eventData.maxTickets || !eventData.ticketPrice) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      // Combine date and time
+      const eventDateTime = new Date(`${eventData.date}T${eventData.time}`);
+      
+      if (eventDateTime <= new Date()) {
+        alert('Event date must be in the future');
+        return;
+      }
+
+      // Create metadata URI
+      const metadata = {
+        name: eventData.title,
+        description: eventData.description,
+        image: "https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg",
+        attributes: [
+          { trait_type: "Category", value: eventData.category },
+          { trait_type: "Location", value: eventData.location },
+          { trait_type: "Date", value: eventDateTime.toLocaleDateString() },
+          { trait_type: "Max Tickets", value: eventData.maxTickets }
+        ]
+      };
+
+      const metadataURI = `data:application/json;base64,${btoa(JSON.stringify(metadata))}`;
+
+      const contractEventData = {
+        title: eventData.title,
+        description: eventData.description,
+        location: eventData.location,
+        date: eventDateTime,
+        ticketPrice: eventData.ticketPrice,
+        maxTickets: parseInt(eventData.maxTickets),
+        metadataURI
+      };
+
+      const result = await createEvent(contractEventData);
+      
+      alert(`Event created successfully! Event ID: ${result.eventId}\nTransaction: ${result.txHash}`);
+      
+      // Redirect to home page
+      router.push('/');
+      
+    } catch (error: any) {
+      alert(`Failed to create event: ${error.message}`);
+    }
   };
 
   return (
@@ -236,10 +289,14 @@ export default function CreateEvent() {
                 {/* Submit Button */}
                 <Button
                   type="submit"
-                  disabled={isCreating}
+                  disabled={isLoading || !account || !isConnectedToCorrectNetwork}
                   className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 py-4 text-lg"
                 >
-                  {isCreating ? (
+                  {!account ? (
+                    'Connect Wallet First'
+                  ) : !isConnectedToCorrectNetwork ? (
+                    'Switch to Somnia Testnet'
+                  ) : isLoading ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-2"></div>
                       Deploying Smart Contract...
@@ -276,6 +333,24 @@ export default function CreateEvent() {
               </div>
             </CardContent>
           </Card>
+
+          {!account && (
+            <Card className="mt-8 bg-yellow-900/20 border-yellow-500/30">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <h3 className="text-white font-semibold mb-2">Wallet Connection Required</h3>
+                  <p className="text-gray-300 text-sm mb-4">
+                    You need to connect your wallet to create events on the blockchain.
+                  </p>
+                  <Link href="/">
+                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0">
+                      Connect Wallet
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

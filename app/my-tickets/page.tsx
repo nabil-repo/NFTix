@@ -1,74 +1,87 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, MapPin, QrCode, Download, Share2, ArrowLeft, Ticket } from 'lucide-react';
 import Link from 'next/link';
-
-const myTickets = [
-  {
-    id: 1,
-    eventTitle: "BlockChain Music Festival 2025",
-    eventImage: "https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=400",
-    date: "2025-03-15",
-    time: "18:00",
-    location: "Crypto Arena, Los Angeles",
-    ticketNumber: "#NFT-001234",
-    tokenId: "0x1a2b3c4d...",
-    status: "active",
-    price: "0.1 ETH",
-    category: "Music"
-  },
-  {
-    id: 2,
-    eventTitle: "DeFi Conference 2025",
-    eventImage: "https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=400",
-    date: "2025-02-28",
-    time: "09:00",
-    location: "Innovation Center, San Francisco",
-    ticketNumber: "#NFT-005678",
-    tokenId: "0x5e6f7g8h...",
-    status: "active",
-    price: "0.05 ETH",
-    category: "Conference"
-  },
-  {
-    id: 3,
-    eventTitle: "NFT Art Gallery Opening",
-    eventImage: "https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=400",
-    date: "2025-01-15",
-    time: "19:00",
-    location: "Digital Gallery, New York",
-    ticketNumber: "#NFT-009876",
-    tokenId: "0x9i0j1k2l...",
-    status: "used",
-    price: "0.02 ETH",
-    category: "Art"
-  }
-];
+import { useContract } from '@/hooks/useContract';
+import { formatAddress } from '@/lib/contracts';
 
 export default function MyTickets() {
-  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const { account, getUserTickets, useTicket, isLoading } = useContract();
 
-  const activeTickets = myTickets.filter(ticket => ticket.status === 'active');
-  const usedTickets = myTickets.filter(ticket => ticket.status === 'used');
+  useEffect(() => {
+    if (account) {
+      loadUserTickets();
+    }
+  }, [account]);
+
+  const loadUserTickets = async () => {
+    try {
+      const userTickets = await getUserTickets();
+      setTickets(userTickets);
+    } catch (error) {
+      console.error('Failed to load tickets:', error);
+    }
+  };
+
+  const activeTickets = tickets.filter(ticket => !ticket.isUsed && new Date() < ticket.event.date);
+  const usedTickets = tickets.filter(ticket => ticket.isUsed || new Date() >= ticket.event.date);
 
   const generateQRCode = (ticketId: string) => {
-    // In a real app, this would generate an actual QR code
-    alert(`QR Code generated for ticket ${ticketId}`);
+    // Generate QR code data with ticket verification info
+    const qrData = {
+      tokenId: ticketId,
+      contract: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+      network: 'somnia-testnet'
+    };
+    
+    // In a real app, you would use a QR code library
+    const qrString = JSON.stringify(qrData);
+    alert(`QR Code data: ${qrString}`);
   };
 
   const downloadTicket = (ticket: any) => {
-    // In a real app, this would download the NFT ticket
-    alert(`Downloading NFT ticket for ${ticket.eventTitle}`);
+    // Create downloadable ticket data
+    const ticketData = {
+      tokenId: ticket.tokenId,
+      eventTitle: ticket.event.title,
+      eventDate: ticket.event.date,
+      location: ticket.event.location,
+      owner: ticket.owner,
+      purchaseTime: ticket.purchaseTime,
+      originalPrice: ticket.originalPrice
+    };
+    
+    const dataStr = JSON.stringify(ticketData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `nft-ticket-${ticket.tokenId}.json`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
   };
 
   const shareTicket = (ticket: any) => {
-    // In a real app, this would open sharing options
-    alert(`Sharing ticket for ${ticket.eventTitle}`);
+    if (navigator.share) {
+      navigator.share({
+        title: `NFT Ticket - ${ticket.event.title}`,
+        text: `Check out my NFT ticket for ${ticket.event.title}!`,
+        url: window.location.href
+      });
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      const shareText = `Check out my NFT ticket for ${ticket.event.title}! Token ID: ${ticket.tokenId}`;
+      navigator.clipboard.writeText(shareText);
+      alert('Ticket info copied to clipboard!');
+    }
   };
 
   return (
@@ -117,7 +130,9 @@ export default function MyTickets() {
                 <Card className="bg-white/5 border-white/10 backdrop-blur-sm text-center py-12">
                   <CardContent>
                     <Ticket className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400 text-lg mb-4">No active tickets yet</p>
+                    <p className="text-gray-400 text-lg mb-4">
+                      {!account ? 'Connect your wallet to view tickets' : 'No active tickets yet'}
+                    </p>
                     <Link href="/">
                       <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0">
                         Browse Events
@@ -128,11 +143,11 @@ export default function MyTickets() {
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {activeTickets.map((ticket) => (
-                    <Card key={ticket.id} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 overflow-hidden group">
+                    <Card key={ticket.tokenId} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 overflow-hidden group">
                       <div className="relative h-48 overflow-hidden">
                         <img
-                          src={ticket.eventImage}
-                          alt={ticket.eventTitle}
+                          src="https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=400"
+                          alt={ticket.event.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                         <div className="absolute top-4 right-4">
@@ -142,7 +157,7 @@ export default function MyTickets() {
                         </div>
                         <div className="absolute top-4 left-4">
                           <Badge className="bg-purple-600/90 text-white border-0">
-                            {ticket.category}
+                            #{ticket.tokenId}
                           </Badge>
                         </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
@@ -150,34 +165,34 @@ export default function MyTickets() {
                       
                       <CardHeader>
                         <CardTitle className="text-white text-lg line-clamp-2">
-                          {ticket.eventTitle}
+                          {ticket.event.title}
                         </CardTitle>
                         <p className="text-purple-400 font-mono text-sm">
-                          {ticket.ticketNumber}
+                          Token #{ticket.tokenId}
                         </p>
                       </CardHeader>
                       
                       <CardContent className="space-y-4">
                         <div className="flex items-center text-gray-300 text-sm">
                           <Calendar className="h-4 w-4 mr-2" />
-                          {new Date(ticket.date).toLocaleDateString()} at {ticket.time}
+                          {ticket.event.date.toLocaleDateString()} at {ticket.event.date.toLocaleTimeString()}
                         </div>
                         
                         <div className="flex items-center text-gray-300 text-sm">
                           <MapPin className="h-4 w-4 mr-2" />
-                          {ticket.location}
+                          {ticket.event.location}
                         </div>
                         
                         <div className="flex items-center justify-between">
                           <span className="text-lg font-bold text-purple-400">
-                            {ticket.price}
+                            {ticket.originalPrice} ETH
                           </span>
                           <div className="flex space-x-2">
                             <Button
                               size="sm"
                               variant="outline"
                               className="border-purple-400 text-purple-300 hover:bg-purple-900/50"
-                              onClick={() => generateQRCode(ticket.ticketNumber)}
+                              onClick={() => generateQRCode(ticket.tokenId)}
                             >
                               <QrCode className="h-4 w-4" />
                             </Button>
@@ -201,7 +216,7 @@ export default function MyTickets() {
                         </div>
 
                         <div className="text-xs text-gray-400 font-mono bg-black/30 p-2 rounded">
-                          Token ID: {ticket.tokenId}
+                          Owner: {formatAddress(ticket.owner)}
                         </div>
                       </CardContent>
                     </Card>
@@ -221,16 +236,16 @@ export default function MyTickets() {
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {usedTickets.map((ticket) => (
-                    <Card key={ticket.id} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 overflow-hidden group opacity-80">
+                    <Card key={ticket.tokenId} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 overflow-hidden group opacity-80">
                       <div className="relative h-48 overflow-hidden">
                         <img
-                          src={ticket.eventImage}
-                          alt={ticket.eventTitle}
+                          src="https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=400"
+                          alt={ticket.event.title}
                           className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300"
                         />
                         <div className="absolute top-4 right-4">
                           <Badge className="bg-gray-600/90 text-white border-0">
-                            Used
+                            {ticket.isUsed ? 'Used' : 'Expired'}
                           </Badge>
                         </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
@@ -238,27 +253,27 @@ export default function MyTickets() {
                       
                       <CardHeader>
                         <CardTitle className="text-white text-lg line-clamp-2">
-                          {ticket.eventTitle}
+                          {ticket.event.title}
                         </CardTitle>
                         <p className="text-purple-400 font-mono text-sm">
-                          {ticket.ticketNumber}
+                          Token #{ticket.tokenId}
                         </p>
                       </CardHeader>
                       
                       <CardContent className="space-y-4">
                         <div className="flex items-center text-gray-300 text-sm">
                           <Calendar className="h-4 w-4 mr-2" />
-                          {new Date(ticket.date).toLocaleDateString()} at {ticket.time}
+                          {ticket.event.date.toLocaleDateString()} at {ticket.event.date.toLocaleTimeString()}
                         </div>
                         
                         <div className="flex items-center text-gray-300 text-sm">
                           <MapPin className="h-4 w-4 mr-2" />
-                          {ticket.location}
+                          {ticket.event.location}
                         </div>
                         
                         <div className="flex items-center justify-between">
                           <span className="text-lg font-bold text-gray-400">
-                            {ticket.price}
+                            {ticket.originalPrice} ETH
                           </span>
                           <Button
                             size="sm"
@@ -272,7 +287,7 @@ export default function MyTickets() {
                         </div>
 
                         <div className="text-xs text-gray-400 font-mono bg-black/30 p-2 rounded">
-                          Token ID: {ticket.tokenId}
+                          Owner: {formatAddress(ticket.owner)}
                         </div>
                       </CardContent>
                     </Card>

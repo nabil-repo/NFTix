@@ -1,54 +1,15 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Calendar, MapPin, Users, Search, Ticket, Shield, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { useContract } from '@/hooks/useContract';
+import { connectWallet } from '@/lib/web3';
 
-const featuredEvents = [
-  {
-    id: 1,
-    title: "BlockChain Music Festival 2025",
-    description: "The future of music meets blockchain technology",
-    image: "https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800",
-    date: "2025-03-15",
-    time: "18:00",
-    location: "Crypto Arena, Los Angeles",
-    price: "0.1 ETH",
-    available: 245,
-    total: 500,
-    category: "Music"
-  },
-  {
-    id: 2,
-    title: "DeFi Conference 2025",
-    description: "Leading voices in decentralized finance",
-    image: "https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=800",
-    date: "2025-02-28",
-    time: "09:00",
-    location: "Innovation Center, San Francisco",
-    price: "0.05 ETH",
-    available: 89,
-    total: 200,
-    category: "Conference"
-  },
-  {
-    id: 3,
-    title: "NFT Art Gallery Opening",
-    description: "Exclusive digital art exhibition",
-    image: "https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=800",
-    date: "2025-02-20",
-    time: "19:00",
-    location: "Digital Gallery, New York",
-    price: "0.02 ETH",
-    available: 156,
-    total: 300,
-    category: "Art"
-  }
-];
 
 const features = [
   {
@@ -70,24 +31,74 @@ const features = [
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isConnected, setIsConnected] = useState(false);
+  const [events, setEvents] = useState<any[]>([]);
+  const { 
+    account, 
+    isConnectedToCorrectNetwork, 
+    getEvents, 
+    mintTicket,
+    isLoading,
+    error 
+  } = useContract();
 
-  const connectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        setIsConnected(true);
-      } catch (error) {
-        console.error('Failed to connect wallet:', error);
-      }
-    } else {
-      alert('Please install MetaMask to use NFTicket');
+  // Load events on component mount
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async () => {
+    try {
+      const contractEvents = await getEvents();
+      setEvents(contractEvents);
+    } catch (error) {
+      console.error('Failed to load events:', error);
+      // Fallback to empty array if contract not deployed yet
+      setEvents([]);
     }
   };
 
-  const filteredEvents = featuredEvents.filter(event =>
+  const handleConnectWallet = async () => {
+    try {
+      await connectWallet();
+      // Refresh the page to update connection status
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+      alert('Failed to connect wallet. Please make sure MetaMask is installed and try again.');
+    }
+  };
+
+  const handleBuyTicket = async (event: any) => {
+    if (!account || !isConnectedToCorrectNetwork) {
+      alert('Please connect your wallet to Somnia testnet first');
+      return;
+    }
+
+    try {
+      // Create metadata for the ticket
+      const tokenURI = `data:application/json;base64,${btoa(JSON.stringify({
+        name: `${event.title} - NFT Ticket`,
+        description: `Official NFT ticket for ${event.title}`,
+        image: "https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg",
+        attributes: [
+          { trait_type: "Event", value: event.title },
+          { trait_type: "Date", value: event.date.toLocaleDateString() },
+          { trait_type: "Location", value: event.location }
+        ]
+      }))}`;
+
+      const result = await mintTicket(event.eventId, tokenURI, event.ticketPrice);
+      alert(`Ticket purchased successfully! Transaction: ${result.txHash}`);
+      
+      // Reload events to update sold tickets count
+      loadEvents();
+    } catch (error: any) {
+      alert(`Failed to purchase ticket: ${error.message}`);
+    }
+  };
+
+  const filteredEvents = events.filter(event =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -111,13 +122,13 @@ export default function Home() {
             <Link href="/marketplace" className="text-white hover:text-purple-300 transition-colors">Marketplace</Link>
           </nav>
           <Button
-            onClick={connectWallet}
+            onClick={handleConnectWallet}
             className={`${isConnected
                 ? 'bg-green-600 hover:bg-green-700'
                 : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
               } text-white border-0`}
           >
-            {isConnected ? 'Connected' : 'Connect Wallet'}
+            {account ? 'Connected' : 'Connect Wallet'}
           </Button>
         </div>
       </header>
@@ -201,18 +212,38 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-2 border-purple-400 border-t-transparent mx-auto mb-4"></div>
+              <p className="text-gray-300">Loading events from blockchain...</p>
+            </div>
+          ) : filteredEvents.length === 0 ? (
+            <Card className="bg-white/5 border-white/10 backdrop-blur-sm text-center py-12">
+              <CardContent>
+                <Ticket className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-400 text-lg mb-4">
+                  {events.length === 0 ? 'No events available yet' : 'No events match your search'}
+                </p>
+                <Link href="/create">
+                  <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0">
+                    Create First Event
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredEvents.map((event) => (
-              <Card key={event.id} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 hover:transform hover:scale-[1.02] overflow-hidden group">
+              <Card key={event.eventId} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 hover:transform hover:scale-[1.02] overflow-hidden group">
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={event.image}
+                    src="https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800"
                     alt={event.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   <div className="absolute top-4 right-4">
                     <Badge className="bg-purple-600/90 text-white border-0">
-                      {event.category}
+                      Event #{event.eventId}
                     </Badge>
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
@@ -230,7 +261,7 @@ export default function Home() {
                 <CardContent className="space-y-4">
                   <div className="flex items-center text-gray-300 text-sm">
                     <Calendar className="h-4 w-4 mr-2" />
-                    {new Date(event.date).toLocaleDateString()} at {event.time}
+                    {event.date.toLocaleDateString()} at {event.date.toLocaleTimeString()}
                   </div>
 
                   <div className="flex items-center text-gray-300 text-sm">
@@ -240,14 +271,19 @@ export default function Home() {
 
                   <div className="flex items-center text-gray-300 text-sm">
                     <Users className="h-4 w-4 mr-2" />
-                    {event.available} of {event.total} available
+                    {event.maxTickets - event.soldTickets} of {event.maxTickets} available
                   </div>
 
                   <div className="flex items-center justify-between pt-4">
                     <span className="text-2xl font-bold text-purple-400">
-                      {event.price}
+                      {event.ticketPrice} ETH
                     </span>
-                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0">
+                    <Button 
+                      onClick={() => handleBuyTicket(event)}
+                      disabled={event.soldTickets >= event.maxTickets || !account}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 disabled:opacity-50"
+                    >
+                      {event.soldTickets >= event.maxTickets ? 'Sold Out' : 'Buy Ticket'}
                       Buy Ticket
                     </Button>
                   </div>
@@ -255,6 +291,7 @@ export default function Home() {
               </Card>
             ))}
           </div>
+          )}
         </div>
       </section>
 
