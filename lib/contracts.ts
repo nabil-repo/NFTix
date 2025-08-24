@@ -1,6 +1,29 @@
 // Smart contract integration utilities
 import { ethers } from 'ethers';
 
+// Types for better type safety
+export interface EventData {
+  eventId: string;
+  title: string;
+  description: string;
+  location: string;
+  date: Date;
+  ticketPrice: string;
+  maxTickets: number;
+  soldTickets: number;
+  organizer: string;
+  isActive: boolean;
+  metadataURI: string;
+}
+
+export interface TicketData {
+  tokenId: string;
+  eventId: string;
+  owner: string;
+  isUsed: boolean;
+  purchaseTime: Date;
+  originalPrice: string;
+}
 
 
 // Contract ABI (Application Binary Interface)
@@ -32,7 +55,7 @@ export const NFT_TICKET_ABI = [
 ];
 
 // Contract address (will be set after deployment)
-export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x236322EB2858D87B2D2Efb00887845e7E7f4CB93';
+export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '';
 
 // Somnia testnet configuration
 export const SOMNIA_TESTNET_CONFIG = {
@@ -68,7 +91,7 @@ export const getSigner = async () => {
 // Get contract instance
 export const getContract = async (withSigner = false) => {
   if (!NFT_TICKET_CONTRACT_ADDRESS) {
-    throw new Error('Contract address not configured');
+    throw new Error('Contract address not configured. Please set NEXT_PUBLIC_CONTRACT_ADDRESS in your environment variables.');
   }
 
   if (withSigner) {
@@ -91,8 +114,15 @@ export const contractService = {
     ticketPrice: string; // in ETH
     maxTickets: number;
     metadataURI: string;
-
   }) {
+    if (!eventData.title || !eventData.description || !eventData.location) {
+      throw new Error('Missing required event data');
+    }
+    
+    if (eventData.date <= new Date()) {
+      throw new Error('Event date must be in the future');
+    }
+
     const contract = await getContract(true);
     const priceInWei = ethers.parseEther(eventData.ticketPrice);
     const dateTimestamp = Math.floor(eventData.date.getTime() / 1000);
@@ -110,9 +140,13 @@ export const contractService = {
     const receipt = await tx.wait();
 
     // Extract event ID from logs
-    const eventCreatedLog = receipt.logs.find((log: any) =>
-      log.topics[0] === ethers.id("EventCreated(uint256,address,string)")
-    );
+    const eventCreatedLog = receipt.logs.find((log: any) => {
+      try {
+        return log.topics[0] === ethers.id("EventCreated(uint256,address,string)");
+      } catch {
+        return false;
+      }
+    });
 
     if (eventCreatedLog) {
       const eventId = ethers.getBigInt(eventCreatedLog.topics[1]);
@@ -124,6 +158,10 @@ export const contractService = {
 
   // Mint a ticket for an event
   async mintTicket(eventId: string, tokenURI: string, ticketPrice: string) {
+    if (!eventId || !tokenURI || !ticketPrice) {
+      throw new Error('Missing required parameters for ticket minting');
+    }
+
     const contract = await getContract(true);
     const priceInWei = ethers.parseEther(ticketPrice);
 
@@ -134,9 +172,13 @@ export const contractService = {
     const receipt = await tx.wait();
 
     // Extract token ID from logs
-    const ticketMintedLog = receipt.logs.find((log: any) =>
-      log.topics[0] === ethers.id("TicketMinted(uint256,uint256,address)")
-    );
+    const ticketMintedLog = receipt.logs.find((log: any) => {
+      try {
+        return log.topics[0] === ethers.id("TicketMinted(uint256,uint256,address)");
+      } catch {
+        return false;
+      }
+    });
 
     if (ticketMintedLog) {
       const tokenId = ethers.getBigInt(ticketMintedLog.topics[1]);
@@ -148,7 +190,11 @@ export const contractService = {
 
 
   // Get event details
-  async getEvent(eventId: string) {
+  async getEvent(eventId: string): Promise<EventData> {
+    if (!eventId) {
+      throw new Error('Event ID is required');
+    }
+
     const contract = await getContract();
     const event = await contract.getEvent(eventId);
 
@@ -168,7 +214,11 @@ export const contractService = {
   },
 
   // Get ticket details
-  async getTicket(tokenId: string) {
+  async getTicket(tokenId: string): Promise<TicketData> {
+    if (!tokenId) {
+      throw new Error('Token ID is required');
+    }
+
     const contract = await getContract();
     const ticket = await contract.getTicket(tokenId);
 
@@ -183,7 +233,11 @@ export const contractService = {
   },
 
   // Get events by organizer
-  async getEventsByOrganizer(organizerAddress: string) {
+  async getEventsByOrganizer(organizerAddress: string): Promise<EventData[]> {
+    if (!organizerAddress || !ethers.isAddress(organizerAddress)) {
+      throw new Error('Valid organizer address is required');
+    }
+
     const contract = await getContract();
     const eventIds = await contract.getEventsByOrganizer(organizerAddress);
 
@@ -197,7 +251,11 @@ export const contractService = {
   },
 
   // Get tickets by owner
-  async getTicketsByOwner(ownerAddress: string) {
+  async getTicketsByOwner(ownerAddress: string): Promise<(TicketData & { event: EventData })[]> {
+    if (!ownerAddress || !ethers.isAddress(ownerAddress)) {
+      throw new Error('Valid owner address is required');
+    }
+
     const contract = await getContract();
     const tokenIds = await contract.getTicketsByOwner(ownerAddress);
 
@@ -214,6 +272,10 @@ export const contractService = {
 
   // Use a ticket (for event check-in)
   async useTicket(tokenId: string) {
+    if (!tokenId) {
+      throw new Error('Token ID is required');
+    }
+
     const contract = await getContract(true);
     const tx = await contract.useTicket(tokenId);
     const receipt = await tx.wait();
@@ -222,6 +284,14 @@ export const contractService = {
 
   // Transfer ticket in marketplace
   async transferTicket(tokenId: string, toAddress: string, price: string) {
+    if (!tokenId || !toAddress || !price) {
+      throw new Error('Missing required parameters for ticket transfer');
+    }
+    
+    if (!ethers.isAddress(toAddress)) {
+      throw new Error('Invalid recipient address');
+    }
+
     const contract = await getContract(true);
     const priceInWei = ethers.parseEther(price);
 
@@ -234,7 +304,7 @@ export const contractService = {
   },
 
   // Get all active events (for marketplace/discovery)
-  async getAllActiveEvents() {
+  async getAllActiveEvents(): Promise<EventData[]> {
     const contract = await getContract();
 
     // This is a simplified approach - in production, you'd want to use events/logs
@@ -250,6 +320,12 @@ export const contractService = {
             events.push(event);
           }
           eventId++;
+          
+          // Safety break to prevent infinite loops
+          if (eventId > 10000) {
+            console.warn('Reached maximum event ID limit (10000)');
+            break;
+          }
         } catch (error) {
           // No more events
           break;
@@ -265,18 +341,24 @@ export const contractService = {
 
 // Utility functions
 export const formatAddress = (address: string) => {
+  if (!address || !ethers.isAddress(address)) {
+    return 'Invalid Address';
+  }
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
 export const formatPrice = (priceInEth: string) => {
+  if (!priceInEth || isNaN(parseFloat(priceInEth))) {
+    return '0.0000 ETH';
+  }
   return `${parseFloat(priceInEth).toFixed(4)} ETH`;
 };
 
-export const isEventActive = (event: any) => {
+export const isEventActive = (event: EventData) => {
   return event.isActive && new Date() < event.date;
 };
 
-export const getEventStatus = (event: any) => {
+export const getEventStatus = (event: EventData) => {
   const now = new Date();
   const eventDate = event.date;
 
