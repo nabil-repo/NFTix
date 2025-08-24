@@ -32,13 +32,14 @@ const features = [
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [events, setEvents] = useState<any[]>([]);
-  const { 
-    account, 
-    isConnectedToCorrectNetwork, 
-    getEvents, 
+  const {
+    account,
+    isConnectedToCorrectNetwork,
+    getEvents,
     mintTicket,
     isLoading,
-    error 
+    error,
+
   } = useContract();
 
   // Load events on component mount
@@ -89,7 +90,7 @@ export default function Home() {
 
       const result = await mintTicket(event.eventId, tokenURI, event.ticketPrice);
       alert(`Ticket purchased successfully! Transaction: ${result.txHash}`);
-      
+
       // Reload events to update sold tickets count
       loadEvents();
     } catch (error: any) {
@@ -123,13 +124,18 @@ export default function Home() {
           </nav>
           <Button
             onClick={handleConnectWallet}
-            className={`${isConnected
-                ? 'bg-green-600 hover:bg-green-700'
-                : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
+            className={`${isConnectedToCorrectNetwork
+              ? 'hidden bg-green-600 hover:bg-green-700 '
+              : ' bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
               } text-white border-0`}
+           
           >
-            {account ? 'Connected' : 'Connect Wallet'}
+            {account ? 'Connected ' + account : 'Connect Wallet'}
           </Button>
+          <div className='rounded-md bg-green-600 p-1'>
+            <text className="text-sm text-white">{account}</text>
+          </div>
+
         </div>
       </header>
 
@@ -233,64 +239,64 @@ export default function Home() {
             </Card>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredEvents.map((event) => (
-              <Card key={event.eventId} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 hover:transform hover:scale-[1.02] overflow-hidden group">
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src="https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800"
-                    alt={event.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-purple-600/90 text-white border-0">
-                      Event #{event.eventId}
-                    </Badge>
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                </div>
-
-                <CardHeader>
-                  <CardTitle className="text-white text-xl line-clamp-2">
-                    {event.title}
-                  </CardTitle>
-                  <CardDescription className="text-gray-300">
-                    {event.description}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <div className="flex items-center text-gray-300 text-sm">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {event.date.toLocaleDateString()} at {event.date.toLocaleTimeString()}
+              {filteredEvents.map((event) => (
+                <Card key={event.eventId} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 hover:transform hover:scale-[1.02] overflow-hidden group">
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src="https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800"
+                      alt={event.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute top-4 right-4">
+                      <Badge className="bg-purple-600/90 text-white border-0">
+                        Event #{event.eventId}
+                      </Badge>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                   </div>
 
-                  <div className="flex items-center text-gray-300 text-sm">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    {event.location}
-                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-white text-xl line-clamp-2">
+                      {event.title}
+                    </CardTitle>
+                    <CardDescription className="text-gray-300">
+                      {event.description}
+                    </CardDescription>
+                  </CardHeader>
 
-                  <div className="flex items-center text-gray-300 text-sm">
-                    <Users className="h-4 w-4 mr-2" />
-                    {event.maxTickets - event.soldTickets} of {event.maxTickets} available
-                  </div>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center text-gray-300 text-sm">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {event.date.toLocaleDateString()} at {event.date.toLocaleTimeString()}
+                    </div>
 
-                  <div className="flex items-center justify-between pt-4">
-                    <span className="text-2xl font-bold text-purple-400">
-                      {event.ticketPrice} ETH
-                    </span>
-                    <Button 
-                      onClick={() => handleBuyTicket(event)}
-                      disabled={event.soldTickets >= event.maxTickets || !account}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 disabled:opacity-50"
-                    >
-                      {event.soldTickets >= event.maxTickets ? 'Sold Out' : 'Buy Ticket'}
-                      Buy Ticket
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <div className="flex items-center text-gray-300 text-sm">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      {event.location}
+                    </div>
+
+                    <div className="flex items-center text-gray-300 text-sm">
+                      <Users className="h-4 w-4 mr-2" />
+                      {event.maxTickets - event.soldTickets} of {event.maxTickets} available
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4">
+                      <span className="text-2xl font-bold text-purple-400">
+                        {event.ticketPrice} ETH
+                      </span>
+                      <Button
+                        onClick={() => handleBuyTicket(event)}
+                        disabled={event.soldTickets >= event.maxTickets || !account}
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 disabled:opacity-50"
+                      >
+                        {event.soldTickets >= event.maxTickets ? 'Sold Out' : 'Buy Ticket'}
+                        Buy Ticket
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       </section>

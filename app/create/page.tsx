@@ -12,10 +12,11 @@ import Link from 'next/link';
 import { useContract } from '@/hooks/useContract';
 import { useRouter } from 'next/navigation';
 
+
 export default function CreateEvent() {
   const router = useRouter();
   const { account, isConnectedToCorrectNetwork, createEvent, isLoading } = useContract();
-  
+
   const [eventData, setEventData] = useState({
     title: '',
     description: '',
@@ -25,7 +26,7 @@ export default function CreateEvent() {
     location: '',
     maxTickets: '',
     ticketPrice: '',
-    image: null
+    image: null as File | null,
   });
 
 
@@ -38,14 +39,14 @@ export default function CreateEvent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!account || !isConnectedToCorrectNetwork) {
       alert('Please connect your wallet to Somnia testnet first');
       return;
     }
 
-    if (!eventData.title || !eventData.description || !eventData.location || 
-        !eventData.date || !eventData.time || !eventData.maxTickets || !eventData.ticketPrice) {
+    if (!eventData.title || !eventData.description || !eventData.location ||
+      !eventData.date || !eventData.time || !eventData.maxTickets || !eventData.ticketPrice) {
       alert('Please fill in all required fields');
       return;
     }
@@ -53,7 +54,7 @@ export default function CreateEvent() {
     try {
       // Combine date and time
       const eventDateTime = new Date(`${eventData.date}T${eventData.time}`);
-      
+
       if (eventDateTime <= new Date()) {
         alert('Event date must be in the future');
         return;
@@ -85,12 +86,12 @@ export default function CreateEvent() {
       };
 
       const result = await createEvent(contractEventData);
-      
+
       alert(`Event created successfully! Event ID: ${result.eventId}\nTransaction: ${result.txHash}`);
-      
+
       // Redirect to home page
       router.push('/');
-      
+
     } catch (error: any) {
       alert(`Failed to create event: ${error.message}`);
     }
@@ -272,7 +273,11 @@ export default function CreateEvent() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => setEventData(prev => ({ ...prev, image: e.target.files[0] }))}
+                      onChange={(e) => {
+                        setEventData(prev => ({ ...prev, image: e.target.files?.[0] || null }));
+
+                      }
+                      }
                     />
                   </div>
                 </div>
@@ -281,7 +286,7 @@ export default function CreateEvent() {
                 <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
                   <h3 className="text-white font-semibold mb-2">Smart Contract Deployment</h3>
                   <p className="text-gray-300 text-sm">
-                    Your event will be deployed as a smart contract on the Somnia testnet. 
+                    Your event will be deployed as a smart contract on the Somnia testnet.
                     Each ticket will be minted as an NFT with unique metadata and anti-fraud protection.
                   </p>
                 </div>

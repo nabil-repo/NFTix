@@ -7,7 +7,7 @@ async function main() {
   console.log('🚀 Starting NFTicket contract deployment...');
   
   // Check if we have the required environment variables
-  const privateKey = process.env.PRIVATE_KEY;
+  const privateKey = process.env.PRIVATE_KEY ;
   const rpcUrl = process.env.RPC_URL || 'https://dream-rpc.somnia.network';
   
   if (!privateKey) {

@@ -1,7 +1,5 @@
 // Web3 utilities for Somnia testnet integration
 import { ethers } from 'ethers';
-import { SOMNIA_TESTNET_CONFIG } from './contracts';
-
 declare global {
   interface Window {
     ethereum?: any;
@@ -9,16 +7,17 @@ declare global {
 }
 
 export const SOMNIA_TESTNET = {
-  chainId: '0x7A309', // 501001 in hex
+  chainId: "0xc488",               // 50312 in hexadecimal
   chainName: 'Somnia Testnet',
   nativeCurrency: {
-    name: 'ETH',
-    symbol: 'ETH',
+    name: 'Somnia Testnet',        // Friendly display name (optional)
+    symbol: 'STT',                 // Must match official network token
     decimals: 18,
   },
   rpcUrls: ['https://dream-rpc.somnia.network'],
-  blockExplorerUrls: ['https://somnia-testnet-explorer.vercel.app'],
+  blockExplorerUrls: ['https://shannon-explorer.somnia.network/'],
 };
+
 
 export const connectWallet = async () => {
   if (typeof window.ethereum === 'undefined') {
@@ -61,7 +60,7 @@ export const getCurrentAccount = async () => {
   if (typeof window.ethereum === 'undefined') {
     return null;
   }
-  
+
   try {
     const accounts = await window.ethereum.request({
       method: 'eth_accounts',
@@ -78,12 +77,12 @@ export const isConnectedToSomnia = async () => {
   if (typeof window.ethereum === 'undefined') {
     return false;
   }
-  
+
   try {
     const chainId = await window.ethereum.request({
       method: 'eth_chainId',
     });
-    return chainId === SOMNIA_TESTNET.chainId;
+    return chainId == SOMNIA_TESTNET.chainId;
   } catch (error) {
     console.error('Failed to check network:', error);
     return false;

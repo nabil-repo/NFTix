@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { contractService } from '@/lib/contracts';
 import { getCurrentAccount, isConnectedToSomnia } from '@/lib/web3';
+import { Console } from 'console';
 
 export const useContract = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,6 +15,8 @@ export const useContract = () => {
     try {
       const currentAccount = await getCurrentAccount();
       const correctNetwork = await isConnectedToSomnia();
+      console.log('Current Account:', currentAccount);
+      console.log('Connected to Somnia:', correctNetwork);
       
       setAccount(currentAccount);
       setIsConnectedToCorrectNetwork(correctNetwork);
