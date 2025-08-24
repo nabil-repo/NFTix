@@ -50,6 +50,7 @@ export default function Home() {
   const loadEvents = async () => {
     try {
       const contractEvents = await getEvents();
+      console.log('Loaded events from contract:', contractEvents);
       setEvents(contractEvents);
     } catch (error) {
       console.error('Failed to load events:', error);
@@ -290,7 +291,6 @@ export default function Home() {
                         className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 disabled:opacity-50"
                       >
                         {event.soldTickets >= event.maxTickets ? 'Sold Out' : 'Buy Ticket'}
-                        Buy Ticket
                       </Button>
                     </div>
                   </CardContent>

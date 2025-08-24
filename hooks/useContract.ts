@@ -15,9 +15,7 @@ export const useContract = () => {
     try {
       const currentAccount = await getCurrentAccount();
       const correctNetwork = await isConnectedToSomnia();
-      console.log('Current Account:', currentAccount);
-      console.log('Connected to Somnia:', correctNetwork);
-      
+
       setAccount(currentAccount);
       setIsConnectedToCorrectNetwork(correctNetwork);
     } catch (error) {
@@ -27,12 +25,12 @@ export const useContract = () => {
 
   useEffect(() => {
     checkConnection();
-    
+
     // Listen for account changes
     if (typeof window !== 'undefined' && window.ethereum) {
       window.ethereum.on('accountsChanged', checkConnection);
       window.ethereum.on('chainChanged', checkConnection);
-      
+
       return () => {
         window.ethereum.removeListener('accountsChanged', checkConnection);
         window.ethereum.removeListener('chainChanged', checkConnection);
@@ -183,13 +181,20 @@ export const useContract = () => {
     }
   }, [account, isConnectedToCorrectNetwork]);
 
+  async function getTicketsByOwner(address: string) {
+    return await contractService.getTicketsByOwner(address);
+  }
+  async function getTicket(tokenId: string) {
+    return await contractService.getTicket(tokenId);
+  }
+
   return {
     // State
     isLoading,
     error,
     account,
     isConnectedToCorrectNetwork,
-    
+
     // Actions
     createEvent,
     mintTicket,
@@ -199,5 +204,7 @@ export const useContract = () => {
     useTicket,
     transferTicket,
     checkConnection,
+    getTicketsByOwner,
+    getTicket,
   };
 };

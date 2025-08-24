@@ -10,6 +10,7 @@ import { Calendar, MapPin, TrendingUp, Search, Filter, ArrowLeft, Ticket, Shield
 import Link from 'next/link';
 import { useContract } from '@/hooks/useContract';
 import { formatAddress } from '@/lib/contracts';
+import { contractService } from '@/lib/contracts';
 
 export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,13 +21,15 @@ export default function Marketplace() {
   const [totalVolume, setTotalVolume] = useState('0');
   const [totalTicketsSold, setTotalTicketsSold] = useState(0);
 
-  const { 
-    account, 
-    isConnectedToCorrectNetwork, 
-    getEvents, 
+  const {
+    account,
+    isConnectedToCorrectNetwork,
+    getEvents,
     getUserTickets,
     transferTicket,
-    isLoading: contractLoading 
+    getTicketsByOwner,
+    getTicket,
+    isLoading: contractLoading
   } = useContract();
 
   useEffect(() => {
@@ -36,52 +39,48 @@ export default function Marketplace() {
   const loadMarketplaceData = async () => {
     setIsLoading(true);
     try {
-      // Get all events to build marketplace listings
       const events = await getEvents();
       const listings: any[] = [];
-      let volume = 0;
-      let ticketCount = 0;
 
-      // For each event, we'll simulate some tickets being available for resale
-      // In a real implementation, you'd track which tickets are listed for sale
       for (const event of events) {
-        if (event.soldTickets > 0) {
-          // Create some sample resale listings based on sold tickets
-          const resaleCount = Math.min(3, Math.floor(event.soldTickets * 0.1)); // 10% of sold tickets available for resale
-          
-          for (let i = 0; i < resaleCount; i++) {
-            const originalPrice = parseFloat(event.ticketPrice);
-            const resaleMultiplier = 1 + (Math.random() * 0.1); // Up to 110% of original price
-            const resalePrice = (originalPrice * resaleMultiplier).toFixed(4);
-            
+        if (Number(event.soldTickets) > 0) {
+          // Instead of Math.random, fetch actual tickets
+
+          if (!account) continue;
+
+          const ticketIds = await getTicketsByOwner(account); // or query indexed events
+          for (const tokenId of ticketIds) {
+            if (tokenId === null) continue; // skip invalid tokenId
+            const ticket = await getTicket(tokenId.tokenId);
+
+
             listings.push({
-              id: `${event.eventId}-${i}`,
-              eventId: event.eventId,
-              tokenId: `${event.eventId}${i.toString().padStart(3, '0')}`,
+              id: `${ticket.tokenId}`,
+              eventId: ticket.eventId,
+              tokenId: ticket.tokenId,
               eventTitle: event.title,
               eventDescription: event.description,
               date: event.date,
               location: event.location,
               originalPrice: event.ticketPrice,
-              currentPrice: resalePrice,
-              seller: `0x${Math.random().toString(16).substr(2, 8)}...${Math.random().toString(16).substr(2, 4)}`,
-              verified: Math.random() > 0.3, // 70% verified sellers
-              category: event.category || 'General',
-              timeLeft: getRandomTimeLeft(),
+              currentPrice: ticket.originalPrice, // resale listing price logic
+              seller: ticket.owner,
+              // verified: verifiedOrganizers[event.organizer],
+              timeLeft: "—", // you can calculate based on event.date
               maxTickets: event.maxTickets,
               soldTickets: event.soldTickets,
-              organizer: event.organizer
+              organizer: event.organizer,
             });
-
-            volume += parseFloat(resalePrice);
-            ticketCount++;
           }
         }
       }
 
+
       setMarketplaceListings(listings);
-      setTotalVolume(volume.toFixed(2));
-      setTotalTicketsSold(ticketCount);
+      setTotalTicketsSold(listings.length);
+      const volume = listings.reduce((sum, listing) => sum + parseFloat(listing.currentPrice), 0);
+      setTotalVolume(volume.toFixed(4));
+
     } catch (error) {
       console.error('Failed to load marketplace data:', error);
       setMarketplaceListings([]);
@@ -98,7 +97,7 @@ export default function Marketplace() {
   const filteredListings = marketplaceListings
     .filter(listing => {
       const matchesSearch = listing.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           listing.location.toLowerCase().includes(searchQuery.toLowerCase());
+        listing.location.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = filterCategory === 'all' || listing.category.toLowerCase() === filterCategory;
       return matchesSearch && matchesCategory;
     })
@@ -134,7 +133,7 @@ export default function Marketplace() {
       if (confirmed) {
         // Simulate transaction
         alert(`Purchase initiated! Transaction will be processed on the blockchain.\n\nEvent: ${listing.eventTitle}\nPrice: ${listing.currentPrice} ETH\nToken ID: ${listing.tokenId}`);
-        
+
         // Remove the listing from the marketplace (simulate successful purchase)
         setMarketplaceListings(prev => prev.filter(item => item.id !== listing.id));
       }
@@ -144,7 +143,8 @@ export default function Marketplace() {
   };
 
   const listMyTicket = () => {
-    alert('Ticket listing feature coming soon! You will be able to list your owned NFT tickets for resale with automatic anti-scalping protection.');
+
+
   };
 
   return (
@@ -195,7 +195,7 @@ export default function Marketplace() {
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               />
             </div>
-            
+
             <Select onValueChange={setFilterCategory} defaultValue="all">
               <SelectTrigger className="w-full md:w-48 bg-white/10 border-white/20 text-white">
                 <Filter className="h-4 w-4 mr-2" />
@@ -234,7 +234,7 @@ export default function Marketplace() {
                 <div>
                   <h3 className="text-white font-semibold mb-2">Anti-Scalping Protection Active</h3>
                   <p className="text-gray-300 text-sm">
-                    All resale tickets are automatically capped at 110% of original price. 
+                    All resale tickets are automatically capped at 110% of original price.
                     5% royalty goes to event organizers. Transfer cooldowns prevent rapid speculation.
                   </p>
                 </div>
@@ -253,8 +253,8 @@ export default function Marketplace() {
               <CardContent>
                 <Ticket className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-400 text-lg mb-4">
-                  {marketplaceListings.length === 0 
-                    ? 'No tickets available for resale yet' 
+                  {marketplaceListings.length === 0
+                    ? 'No tickets available for resale yet'
                     : 'No tickets match your search'
                   }
                 </p>
@@ -309,19 +309,19 @@ export default function Marketplace() {
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                   </div>
-                  
+
                   <CardHeader>
                     <CardTitle className="text-white text-lg line-clamp-2">
                       {listing.eventTitle}
                     </CardTitle>
                   </CardHeader>
-                  
+
                   <CardContent className="space-y-4">
                     <div className="flex items-center text-gray-300 text-sm">
                       <Calendar className="h-4 w-4 mr-2" />
                       {listing.date.toLocaleDateString()} at {listing.date.toLocaleTimeString()}
                     </div>
-                    
+
                     <div className="flex items-center text-gray-300 text-sm">
                       <MapPin className="h-4 w-4 mr-2" />
                       {listing.location}
@@ -341,7 +341,7 @@ export default function Marketplace() {
                         <span className="text-white font-semibold">Resale Price</span>
                         <span className="text-2xl font-bold text-purple-400">{listing.currentPrice} ETH</span>
                       </div>
-                      
+
                       <div className="text-xs text-gray-400 mb-4 font-mono">
                         <div>Seller: {listing.seller}</div>
                         <div>Organizer: {formatAddress(listing.organizer)}</div>
@@ -389,7 +389,7 @@ export default function Marketplace() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-green-400">
-                  {filteredListings.length > 0 
+                  {filteredListings.length > 0
                     ? (filteredListings.reduce((sum, listing) => sum + parseFloat(listing.currentPrice), 0) / filteredListings.length).toFixed(4)
                     : '0.000'
                   } ETH

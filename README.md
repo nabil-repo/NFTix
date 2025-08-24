@@ -107,3 +107,14 @@ For support and questions:
 - Join our community discussions
 ---
 Built with ❤️ for the future of event ticketing
+
+
+=== Deployment Summary ===
+{
+  "network": "somnia-testnet",
+  "contractAddress": "0xF71f8DEF4c850b076c37B536252B7D5C1D0b1017",
+  "deployer": "0x236322EB2858D87B2D2Efb00887845e7E7f4CB93",
+  "platformWallet": "0x236322EB2858D87B2D2Efb00887845e7E7f4CB93",
+  "blockNumber": 157988974,
+  "transactionHash": "0x7223ef397b3dd88dce2265783efc38dd6a309e4cf6c49b9bea1f3c11d5b24972"
+}

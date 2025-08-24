@@ -1,4 +1,4 @@
- // Smart contract integration utilities
+// Smart contract integration utilities
 import { ethers } from 'ethers';
 
 // Types for better type safety
@@ -37,7 +37,7 @@ export const NFT_TICKET_ABI = [
   // Read functions
   "function events(uint256) view returns (uint256 eventId, string title, string description, string location, uint256 date, uint256 ticketPrice, uint256 maxTickets, uint256 soldTickets, address organizer, bool isActive, string metadataURI)",
   "function tickets(uint256) view returns (uint256 tokenId, uint256 eventId, address owner, bool isUsed, uint256 purchaseTime, uint256 originalPrice)",
-  "function getEvent(uint256 eventId) view returns (tuple(uint256 eventId, string title, string description, string location, uint256 date, uint256 ticketPrice, uint256 maxTickets, uint256 soldTickets, address organizer, bool isActive, string metadataURI))",
+  "function fetchEvent(uint256 eventId) view returns (tuple(uint256 eventId, string title, string description, string location, uint256 date, uint256 ticketPrice, uint256 maxTickets, uint256 soldTickets, address organizer, bool isActive, string metadataURI))",
   "function getTicket(uint256 tokenId) view returns (tuple(uint256 tokenId, uint256 eventId, address owner, bool isUsed, uint256 purchaseTime, uint256 originalPrice))",
   "function getEventsByOrganizer(address organizer) view returns (uint256[])",
   "function getTicketsByOwner(address owner) view returns (uint256[])",
@@ -55,7 +55,7 @@ export const NFT_TICKET_ABI = [
 ];
 
 // Contract address (will be set after deployment)
-export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '';
+export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0xF71f8DEF4c850b076c37B536252B7D5C1D0b1017';
 
 // Somnia testnet configuration
 export const SOMNIA_TESTNET_CONFIG = {
@@ -118,7 +118,7 @@ export const contractService = {
     if (!eventData.title || !eventData.description || !eventData.location) {
       throw new Error('Missing required event data');
     }
-    
+
     if (eventData.date <= new Date()) {
       throw new Error('Event date must be in the future');
     }
@@ -126,6 +126,8 @@ export const contractService = {
     const contract = await getContract(true);
     const priceInWei = ethers.parseEther(eventData.ticketPrice);
     const dateTimestamp = Math.floor(eventData.date.getTime() / 1000);
+
+    console.log("contract:- ",await contract.getAddress());
 
     const tx = await contract.createEvent(
       eventData.title,
@@ -196,7 +198,7 @@ export const contractService = {
     }
 
     const contract = await getContract();
-    const event = await contract.getEvent(eventId);
+    const event = await contract.fetchEvent(eventId);
 
     return {
       eventId: event.eventId.toString(),
@@ -287,7 +289,7 @@ export const contractService = {
     if (!tokenId || !toAddress || !price) {
       throw new Error('Missing required parameters for ticket transfer');
     }
-    
+
     if (!ethers.isAddress(toAddress)) {
       throw new Error('Invalid recipient address');
     }
@@ -307,11 +309,8 @@ export const contractService = {
   async getAllActiveEvents(): Promise<EventData[]> {
     const contract = await getContract();
 
-    // This is a simplified approach - in production, you'd want to use events/logs
-    // or implement a more efficient querying mechanism
     const events = [];
-    let eventId = 1;
-
+    let eventId = 1; 
     try {
       while (true) {
         try {
@@ -320,10 +319,10 @@ export const contractService = {
             events.push(event);
           }
           eventId++;
-          
+
           // Safety break to prevent infinite loops
-          if (eventId > 10000) {
-            console.warn('Reached maximum event ID limit (10000)');
+          if (eventId > 10) {
+            console.warn('Reached maximum event ID limit (10)');
             break;
           }
         } catch (error) {
