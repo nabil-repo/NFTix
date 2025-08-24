@@ -1,4 +1,4 @@
-// Smart contract integration utilities
+ // Smart contract integration utilities
 import { ethers } from 'ethers';
 
 // Types for better type safety
