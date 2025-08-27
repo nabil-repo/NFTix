@@ -11,6 +11,7 @@ import { Calendar, MapPin, Users, DollarSign, Upload, ArrowLeft, Ticket } from '
 import Link from 'next/link';
 import { useContract } from '@/hooks/useContract';
 import { useRouter } from 'next/navigation';
+import { set } from 'date-fns';
 
 
 export default function CreateEvent() {
@@ -26,8 +27,14 @@ export default function CreateEvent() {
     location: '',
     maxTickets: '',
     ticketPrice: '',
-    image: null as File | null,
+    imageUrl: '',
   });
+
+  // imgbb API key (replace with your own for production)
+  const imgbbApiKey = "f5f1c8c9c5637a9c09d685bc5ada689f";
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
 
 
   const handleInputChange = (field: string, value: string) => {
@@ -35,6 +42,28 @@ export default function CreateEvent() {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
+    setUploadError(null);
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEventData(prev => ({ ...prev, imageUrl: data.data.url }));
+      } else {
+        setUploadError('Image upload failed.');
+      }
+    } catch (err) {
+      setUploadError('Image upload failed.');
+    }
+    setUploading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,6 +83,7 @@ export default function CreateEvent() {
     try {
       // Combine date and time
       const eventDateTime = new Date(`${eventData.date}T${eventData.time}`);
+      console.log("event date:- " + eventDateTime.toString() + " eventData.date :" + eventData.date + " eventData.date : " + eventData.time);
 
       if (eventDateTime <= new Date()) {
         alert('Event date must be in the future');
@@ -61,10 +91,10 @@ export default function CreateEvent() {
       }
 
       // Create metadata URI
-      const metadata = {
+      const metadata1 = {
         name: eventData.title,
         description: eventData.description,
-        image: "https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg",
+        image: eventData.imageUrl || '',
         attributes: [
           { trait_type: "Category", value: eventData.category },
           { trait_type: "Location", value: eventData.location },
@@ -73,8 +103,9 @@ export default function CreateEvent() {
         ]
       };
 
-      const metadataURI = `data:application/json;base64,${btoa(JSON.stringify(metadata))}`;
 
+      const metadataURI = `data:application/json;base64,${btoa(JSON.stringify(metadata1))}`;
+      console.log("metadata uri:- " + metadataURI);
       const contractEventData = {
         title: eventData.title,
         description: eventData.description,
@@ -246,7 +277,7 @@ export default function CreateEvent() {
                   <div className="space-y-2">
                     <Label htmlFor="ticketPrice" className="text-white flex items-center">
                       <DollarSign className="h-4 w-4 mr-1" />
-                      Price (ETH)
+                      Price (STT)
                     </Label>
                     <Input
                       id="ticketPrice"
@@ -261,25 +292,40 @@ export default function CreateEvent() {
                   </div>
                 </div>
 
-                {/* Image Upload */}
+                {/* Image Upload (imgbb) */}
                 <div className="space-y-2">
-                  <Label htmlFor="image" className="text-white">Event Image</Label>
-                  <div className="border-2 border-dashed border-white/20 rounded-lg p-8 text-center hover:border-purple-400 transition-colors">
-                    <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400 mb-2">Drag and drop your event image here</p>
-                    <p className="text-gray-500 text-sm">or click to browse files</p>
-                    <Input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        setEventData(prev => ({ ...prev, image: e.target.files?.[0] || null }));
-
-                      }
-                      }
-                    />
-                  </div>
+                  <Label className="text-white">Event Image</Label>
+                  <label htmlFor="image-upload" className="cursor-pointer">
+                    <div className="border-2 border-dashed border-white/20 rounded-lg p-8 text-center hover:border-purple-400 transition-colors">
+                      {eventData.imageUrl ? (
+                        <div>
+                          <img src={eventData.imageUrl} alt="Event preview" className="mx-auto mb-4 max-h-48 rounded-lg" />
+                          <p className="text-gray-400 text-sm">Click to change image</p>
+                        </div>
+                      ) : uploading ? (
+                        <div className="text-gray-400">Uploading...</div>
+                      ) : (
+                        <>
+                          <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-400 mb-2">Drag and drop your event image here</p>
+                          <p className="text-gray-500 text-sm">or click to browse files</p>
+                        </>
+                      )}
+                      <Input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            await handleImageUpload(file);
+                          }
+                        }}
+                      />
+                      {uploadError && <div className="text-red-500 text-sm mt-2">{uploadError}</div>}
+                    </div>
+                  </label>
                 </div>
 
                 {/* Smart Contract Info */}
@@ -315,7 +361,7 @@ export default function CreateEvent() {
           </Card>
 
           {/* Benefits Card */}
-          <Card className="mt-8 bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-purple-500/30">
+          <Card className="mt-8 bg-gradient-to-b from-purple-900 to-blue-900 border-purple-500">
             <CardHeader>
               <CardTitle className="text-white">Why Create on NFTicket?</CardTitle>
             </CardHeader>

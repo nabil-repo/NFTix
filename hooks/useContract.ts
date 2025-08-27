@@ -80,6 +80,10 @@ export const useContract = () => {
     }
   }, [account, isConnectedToCorrectNetwork]);
 
+  const getEvent = useCallback(async (eventId: string) => {
+    return await contractService.getEvent(eventId);
+  }, []);
+
   // Get events
   const getEvents = useCallback(async () => {
     setIsLoading(true);
@@ -187,6 +191,48 @@ export const useContract = () => {
   async function getTicket(tokenId: string) {
     return await contractService.getTicket(tokenId);
   }
+  async function getAllListings() {
+    return await contractService.listings();
+  }
+  async function listTicket(tokenId: string, price: string) {
+    if (!account || !isConnectedToCorrectNetwork) {
+      throw new Error('Please connect your wallet to Somnia testnet');
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await contractService.listTicket(tokenId, price);
+      return result;
+    } catch (error: any) {
+      const errorMessage = error.reason || error.message || 'Failed to list ticket';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function cancelListing(tokenId: string) {
+    if (!account || !isConnectedToCorrectNetwork) {
+      throw new Error('Please connect your wallet to Somnia testnet');
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await contractService.cancelListing(tokenId);
+      return result;
+    } catch (error: any) {
+      const errorMessage = error.reason || error.message || 'Failed to cancel listing';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return {
     // State
@@ -206,5 +252,9 @@ export const useContract = () => {
     checkConnection,
     getTicketsByOwner,
     getTicket,
+    getAllListings,
+    getEvent,
+    listTicket,
+    cancelListing
   };
 };

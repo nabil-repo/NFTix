@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SetStateAction } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useContract } from '@/hooks/useContract';
 import { formatAddress } from '@/lib/contracts';
 import { contractService } from '@/lib/contracts';
+import ListMyTicket from '@/components/ui/listMyTicket';
 
 export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,6 +21,7 @@ export default function Marketplace() {
   const [isLoading, setIsLoading] = useState(true);
   const [totalVolume, setTotalVolume] = useState('0');
   const [totalTicketsSold, setTotalTicketsSold] = useState(0);
+  const [userTickets, setUserTickets] = useState<any[]>([]);
 
   const {
     account,
@@ -29,12 +31,90 @@ export default function Marketplace() {
     transferTicket,
     getTicketsByOwner,
     getTicket,
-    isLoading: contractLoading
+    isLoading: contractLoading,
+    getAllListings,
+    getEvent,
   } = useContract();
 
+
   useEffect(() => {
-    loadMarketplaceData();
-  }, []);
+    if (account) {
+
+      loadMarketplaceData();
+      loadUserTickets();
+    }
+  }, [account]);
+
+  const loadUserTickets = async () => {
+    console.log("loading user tickets for", account);
+    if (!account) return;
+
+    try {
+      // 1. Get all ticket IDs owned by the user.
+      const ticketIds = await getTicketsByOwner(account);
+
+      // 2. Create an array of promises to fetch details for each ticket AND its event in parallel.
+      const ticketDetailPromises = ticketIds.map(async (tokenId) => {
+        try {
+          // We assume getTicketsByOwner returns an array of BigInts/numbers
+          const ticket = await getTicket(tokenId.tokenId);
+          // Use the CORRECT ID (ticket.eventId) to fetch the event
+          const event = await getEvent(ticket.eventId);
+
+          // Return a single, combined object with all necessary data
+          return {
+            id: ticket.tokenId.toString(),
+            isUsed: ticket.isUsed,
+            originalPrice: ticket.originalPrice?.toString(),
+            event: {
+              title: event.title,
+              date: event.date,
+              location: event.location
+            }
+          };
+        } catch (err) {
+          console.error(`Failed to fetch details for ticket #${tokenId}`, err);
+          return null; // Return null for failed fetches
+        }
+      });
+
+      // 3. Wait for all parallel requests to complete.
+      const allTickets = await Promise.all(ticketDetailPromises);
+
+      // 4. Use a Map to easily handle deduplication and filter out any nulls from failed fetches.
+      const uniqueTickets = new Map();
+      allTickets.forEach(ticket => {
+        if (ticket) { // Ensure ticket is not null
+          uniqueTickets.set(ticket.id, ticket);
+        }
+      });
+
+      const ticketsArray = Array.from(uniqueTickets.values());
+
+      // 5. Now, perform a simple, SYNCHRONOUS filter on the complete data.
+
+      const now = new Date();
+
+      const nonExpiredTickets = ticketsArray.filter(ticket => {
+        const eventDate = new Date(ticket.event.date);
+
+        const isUpcoming = eventDate.getTime() > now.getTime();
+
+        console.log(
+          `Ticket #${ticket.id} - isUsed: ${ticket.isUsed}, event date: ${eventDate}, upcoming: ${isUpcoming}`
+        );
+
+        return !ticket.isUsed && isUpcoming;
+      });
+
+
+      console.log("user tickets", nonExpiredTickets);
+      setUserTickets(nonExpiredTickets);
+
+    } catch (err) {
+      console.error("Failed to fetch user tickets", err);
+    }
+  };
 
   const loadMarketplaceData = async () => {
     setIsLoading(true);
@@ -42,38 +122,38 @@ export default function Marketplace() {
       const events = await getEvents();
       const listings: any[] = [];
 
-      for (const event of events) {
-        if (Number(event.soldTickets) > 0) {
-          // Instead of Math.random, fetch actual tickets
+      // for (const event of events) {
+      //   if (Number(event.soldTickets) > 0) {
+      //     // Instead of Math.random, fetch actual tickets
 
-          if (!account) continue;
+      //     if (!account) continue;
 
-          const ticketIds = await getTicketsByOwner(account); // or query indexed events
-          for (const tokenId of ticketIds) {
-            if (tokenId === null) continue; // skip invalid tokenId
-            const ticket = await getTicket(tokenId.tokenId);
+      const ticketIds = await getAllListings(); // or query indexed events
+      console.log("all listings", ticketIds[0]);
+      // for (const tokenId of ticketIds) {
+      //   if (tokenId === null) continue; // skip invalid tokenId
+      //   const ticket = await getTicket(tokenId.tokenId);
 
-
-            listings.push({
-              id: `${ticket.tokenId}`,
-              eventId: ticket.eventId,
-              tokenId: ticket.tokenId,
-              eventTitle: event.title,
-              eventDescription: event.description,
-              date: event.date,
-              location: event.location,
-              originalPrice: event.ticketPrice,
-              currentPrice: ticket.originalPrice, // resale listing price logic
-              seller: ticket.owner,
-              // verified: verifiedOrganizers[event.organizer],
-              timeLeft: "—", // you can calculate based on event.date
-              maxTickets: event.maxTickets,
-              soldTickets: event.soldTickets,
-              organizer: event.organizer,
-            });
-          }
-        }
-      }
+      //   listings.push({
+      //     id: `${ticket.tokenId}`,
+      //     eventId: ticket.eventId,
+      //     tokenId: ticket.tokenId,
+      //     eventTitle: event.title,
+      //     eventDescription: event.description,
+      //     date: event.date,
+      //     location: event.location,
+      //     originalPrice: event.ticketPrice,
+      //     currentPrice: ticket.originalPrice, // resale listing price logic
+      //     seller: ticket.owner,
+      //     // verified: verifiedOrganizers[event.organizer],
+      //     timeLeft: "—", // you can calculate based on event.date
+      //     maxTickets: event.maxTickets,
+      //     soldTickets: event.soldTickets,
+      //     organizer: event.organizer,
+      //   });
+      //  }
+      // }
+      // }
 
 
       setMarketplaceListings(listings);
@@ -89,10 +169,7 @@ export default function Marketplace() {
     }
   };
 
-  const getRandomTimeLeft = () => {
-    const options = ['2 hours', '5 hours', '1 day', '2 days', '3 days', '1 week'];
-    return options[Math.floor(Math.random() * options.length)];
-  };
+
 
   const filteredListings = marketplaceListings
     .filter(listing => {
@@ -123,29 +200,36 @@ export default function Marketplace() {
     }
 
     try {
-      // In a real implementation, this would call the transferTicket function
-      // For now, we'll simulate the purchase
-      const confirmed = confirm(
-        `Purchase ${listing.eventTitle} for ${listing.currentPrice} ETH?\n\n` +
-        `This will transfer the NFT ticket to your wallet.`
-      );
-
-      if (confirmed) {
-        // Simulate transaction
-        alert(`Purchase initiated! Transaction will be processed on the blockchain.\n\nEvent: ${listing.eventTitle}\nPrice: ${listing.currentPrice} ETH\nToken ID: ${listing.tokenId}`);
-
-        // Remove the listing from the marketplace (simulate successful purchase)
-        setMarketplaceListings(prev => prev.filter(item => item.id !== listing.id));
-      }
+      const tx = await contractService.buyTicket(listing.tokenId, listing.currentPrice);
+      alert(`Ticket purchased successfully! Tx: ${tx.txHash}`);
+      await loadMarketplaceData(); // reload marketplace after purchase
     } catch (error: any) {
-      alert(`Failed to purchase ticket: ${error.message}`);
+      console.error('Failed to buy ticket:', error);
+      alert(error.message || 'Transaction failed');
     }
   };
 
-  const listMyTicket = () => {
 
+  const listMyTicket = async () => {
+    if (!account || !isConnectedToCorrectNetwork) {
+      alert('Please connect your wallet to Somnia testnet first');
+      return;
+    }
 
+    try {
+      const tokenId = prompt('Enter your Ticket Token ID:');
+      const price = prompt('Enter resale price in STT:');
+      if (!tokenId || !price) return;
+
+      const tx = await contractService.listTicket(tokenId, price);
+      alert(`Ticket listed successfully! Tx: ${tx.txHash}`);
+      await loadMarketplaceData(); // reload listings
+    } catch (error: any) {
+      console.error('Failed to list ticket:', error);
+      alert(error.message || 'Transaction failed');
+    }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -166,12 +250,19 @@ export default function Marketplace() {
               NFTicket
             </h1>
           </div>
-          <Button
-            onClick={listMyTicket}
-            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-0"
-          >
-            List My Ticket
-          </Button>
+       
+          <ListMyTicket
+            userTickets={userTickets}
+            onListTicket={async (ticketId, price) => {
+              try {
+                const tx = await contractService.listTicket(ticketId, price);
+                alert(`Ticket listed successfully! Tx: ${tx.txHash}`);
+                await loadMarketplaceData();
+              } catch (error: any) {
+                alert("TRANSFER_COOLDOWN: Cooldown period active wait for 24 hours before listing...");
+              }
+            }}
+          />
         </div>
       </header>
 
@@ -227,7 +318,7 @@ export default function Marketplace() {
           </div>
 
           {/* Anti-Scalping Notice */}
-          <Card className="mb-8 bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-blue-500/30">
+          <Card className="mb-8 bg-gradient-to-r from-blue-900 to-purple-900 border-blue-500">
             <CardContent className="p-6">
               <div className="flex items-start space-x-3">
                 <Shield className="h-6 w-6 text-blue-400 mt-1" />
@@ -268,8 +359,8 @@ export default function Marketplace() {
                   >
                     Clear Filters
                   </Button>
-                  <Link href="/">
-                    <Button variant="outline" className="border-purple-400 text-purple-300 hover:bg-purple-900/50">
+                  <Link href="/#events">
+                    <Button variant="outline" className="border-purple-500 text-purple-800 hover:bg-purple-200">
                       Browse Events
                     </Button>
                   </Link>
@@ -335,11 +426,11 @@ export default function Marketplace() {
                     <div className="border-t border-white/10 pt-4">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-gray-400 text-sm">Original Price</span>
-                        <span className="text-gray-400 text-sm line-through">{listing.originalPrice} ETH</span>
+                        <span className="text-gray-400 text-sm line-through">{listing.originalPrice} STT</span>
                       </div>
                       <div className="flex justify-between items-center mb-4">
                         <span className="text-white font-semibold">Resale Price</span>
-                        <span className="text-2xl font-bold text-purple-400">{listing.currentPrice} ETH</span>
+                        <span className="text-2xl font-bold text-purple-400">{listing.currentPrice} STT</span>
                       </div>
 
                       <div className="text-xs text-gray-400 mb-4 font-mono">
@@ -363,17 +454,17 @@ export default function Marketplace() {
 
           {/* Trading Stats */}
           <div className="mt-16 grid md:grid-cols-3 gap-6">
-            <Card className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-purple-500/30 text-center">
+            <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-500 text-center">
               <CardHeader>
                 <CardTitle className="text-white">Total Volume</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-purple-400">{totalVolume} ETH</div>
+                <div className="text-3xl font-bold text-purple-400">{totalVolume} STT</div>
                 <p className="text-gray-300 text-sm mt-2">Marketplace trades</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-r from-blue-900/20 to-green-900/20 border-blue-500/30 text-center">
+            <Card className="bg-gradient-to-r from-blue-900 to-green-900 border-blue-500 text-center">
               <CardHeader>
                 <CardTitle className="text-white">Available Tickets</CardTitle>
               </CardHeader>
@@ -383,7 +474,7 @@ export default function Marketplace() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-r from-green-900/20 to-purple-900/20 border-green-500/30 text-center">
+            <Card className="bg-gradient-to-r from-green-900 to-purple-900 border-green-500 text-center">
               <CardHeader>
                 <CardTitle className="text-white">Average Price</CardTitle>
               </CardHeader>
@@ -392,7 +483,7 @@ export default function Marketplace() {
                   {filteredListings.length > 0
                     ? (filteredListings.reduce((sum, listing) => sum + parseFloat(listing.currentPrice), 0) / filteredListings.length).toFixed(4)
                     : '0.000'
-                  } ETH
+                  } STT
                 </div>
                 <p className="text-gray-300 text-sm mt-2">Current market rate</p>
               </CardContent>
@@ -400,7 +491,7 @@ export default function Marketplace() {
           </div>
 
           {/* How It Works */}
-          <Card className="mt-16 bg-gradient-to-r from-slate-900/50 to-purple-900/20 border-slate-500/30">
+          <Card className="mt-16 bg-gradient-to-r from-slate-900 to-purple-900 border-slate-500">
             <CardHeader>
               <CardTitle className="text-white text-center">How Marketplace Works</CardTitle>
             </CardHeader>
@@ -436,6 +527,8 @@ export default function Marketplace() {
           </Card>
         </div>
       </div>
+
     </div>
+
   );
 }

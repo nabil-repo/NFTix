@@ -1,3 +1,4 @@
+
 // Smart contract integration utilities
 import { ethers } from 'ethers';
 
@@ -25,37 +26,63 @@ export interface TicketData {
   originalPrice: string;
 }
 
-
-// Contract ABI (Application Binary Interface)
 export const NFT_TICKET_ABI = [
-  // Events
+  // --- Events ---
+  "event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)",
+  "event ApprovalForAll(address indexed owner, address indexed operator, bool approved)",
   "event EventCreated(uint256 indexed eventId, address indexed organizer, string title)",
+  "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
+  "event TicketBought(uint256 indexed tokenId, address indexed buyer, uint256 price)",
+  "event TicketListed(uint256 indexed tokenId, address indexed seller, uint256 price)",
   "event TicketMinted(uint256 indexed tokenId, uint256 indexed eventId, address indexed buyer)",
+  "event TicketUnlisted(uint256 indexed tokenId, address indexed seller)",
   "event TicketUsed(uint256 indexed tokenId, uint256 indexed eventId)",
-  "event TicketTransferred(uint256 indexed tokenId, address indexed from, address indexed to, uint256 price)",
+  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
 
-  // Read functions
-  "function events(uint256) view returns (uint256 eventId, string title, string description, string location, uint256 date, uint256 ticketPrice, uint256 maxTickets, uint256 soldTickets, address organizer, bool isActive, string metadataURI)",
-  "function tickets(uint256) view returns (uint256 tokenId, uint256 eventId, address owner, bool isUsed, uint256 purchaseTime, uint256 originalPrice)",
-  "function fetchEvent(uint256 eventId) view returns (tuple(uint256 eventId, string title, string description, string location, uint256 date, uint256 ticketPrice, uint256 maxTickets, uint256 soldTickets, address organizer, bool isActive, string metadataURI))",
-  "function getTicket(uint256 tokenId) view returns (tuple(uint256 tokenId, uint256 eventId, address owner, bool isUsed, uint256 purchaseTime, uint256 originalPrice))",
-  "function getEventsByOrganizer(address organizer) view returns (uint256[])",
-  "function getTicketsByOwner(address owner) view returns (uint256[])",
-  "function ownerOf(uint256 tokenId) view returns (address)",
-  "function tokenURI(uint256 tokenId) view returns (string)",
+  // --- Read Functions ---
+  "function MAX_RESALE_PERCENTAGE() view returns (uint256)",
+  "function ROYALTY_PERCENTAGE() view returns (uint256)",
+  "function TRANSFER_COOLDOWN() view returns (uint256)",
   "function balanceOf(address owner) view returns (uint256)",
+  "function events(uint256) view returns (uint256 eventId, string title, string description, string location, uint256 date, uint256 ticketPrice, uint256 maxTickets, uint256 soldTickets, address organizer, bool isActive, string metadataURI)",
+  "function fetchEvent(uint256 _eventId) view returns (tuple(uint256 eventId, string title, string description, string location, uint256 date, uint256 ticketPrice, uint256 maxTickets, uint256 soldTickets, address organizer, bool isActive, string metadataURI))",
+  "function getApproved(uint256 tokenId) view returns (address)",
+  "function getEventCount() view returns (uint256)",
+  "function getEventsByOrganizer(address _organizer) view returns (uint256[])",
+  "function getTicket(uint256 _tokenId) view returns (tuple(uint256 tokenId, uint256 eventId, address owner, bool isUsed, uint256 purchaseTime, uint256 originalPrice))",
+  "function getTicketsByOwner(address _owner) view returns (uint256[])",
+  "function isApprovedForAll(address owner, address operator) view returns (bool)",
+  "function lastTransferTime(uint256) view returns (uint256)",
+  "function listings(uint256) view returns (uint256 tokenId, address seller, uint256 price, bool active)",
+  "function name() view returns (string)",
+  "function owner() view returns (address)",
+  "function ownerOf(uint256 tokenId) view returns (address)",
+  "function supportsInterface(bytes4 interfaceId) view returns (bool)",
+  "function symbol() view returns (string)",
+  "function tickets(uint256) view returns (uint256 tokenId, uint256 eventId, address owner, bool isUsed, uint256 purchaseTime, uint256 originalPrice)",
+  "function tokenURI(uint256 tokenId) view returns (string)",
+  "function verifiedOrganizers(address) view returns (bool)",
 
-  // Write functions
-  "function createEvent(string title, string description, string location, uint256 date, uint256 ticketPrice, uint256 maxTickets, string metadataURI) returns (uint256)",
-  "function mintTicket(uint256 eventId, string tokenURI) payable returns (uint256)",
-  "function useTicket(uint256 tokenId)",
-  "function transferTicket(uint256 tokenId, address to, uint256 price)",
-  "function verifyOrganizer(address organizer)",
-  "function deactivateEvent(uint256 eventId)"
+  // --- Write Functions ---
+  "function approve(address to, uint256 tokenId)",
+  "function buyTicket(uint256 _tokenId) payable",
+  "function cancelListing(uint256 _tokenId)",
+  "function createEvent(string _title, string _description, string _location, uint256 _date, uint256 _ticketPrice, uint256 _maxTickets, string _metadataURI) returns (uint256)",
+  "function deactivateEvent(uint256 _eventId)",
+  "function listTicket(uint256 _tokenId, uint256 _price)",
+  "function mintTicket(uint256 _eventId, string _tokenURI) payable returns (uint256)",
+  "function renounceOwnership()",
+  "function safeTransferFrom(address from, address to, uint256 tokenId)",
+  "function safeTransferFrom(address from, address to, uint256 tokenId, bytes data)",
+  "function setApprovalForAll(address operator, bool approved)",
+  "function transferFrom(address from, address to, uint256 tokenId)",
+  "function transferOwnership(address newOwner)",
+  "function useTicket(uint256 _tokenId)",
+  "function verifyOrganizer(address _organizer)",
+  "function withdraw()"
 ];
-
 // Contract address (will be set after deployment)
-export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0xF71f8DEF4c850b076c37B536252B7D5C1D0b1017';
+export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x2326046046AFbbF22e6547f360A59D1F9E19bd7A';
 
 // Somnia testnet configuration
 export const SOMNIA_TESTNET_CONFIG = {
@@ -105,13 +132,25 @@ export const getContract = async (withSigner = false) => {
 
 // Contract interaction functions
 export const contractService = {
+  // ...existing code...
+
+  // Deactivate (cancel) an event
+  async deactivateEvent(eventId: string) {
+    if (!eventId) {
+      throw new Error('Event ID is required');
+    }
+    const contract = await getContract(true);
+    const tx = await contract.deactivateEvent(eventId);
+    const receipt = await tx.wait();
+    return { txHash: receipt.hash };
+  },
   // Create a new event
   async createEvent(eventData: {
     title: string;
     description: string;
     location: string;
     date: Date;
-    ticketPrice: string; // in ETH
+    ticketPrice: string; // in STT
     maxTickets: number;
     metadataURI: string;
   }) {
@@ -127,7 +166,7 @@ export const contractService = {
     const priceInWei = ethers.parseEther(eventData.ticketPrice);
     const dateTimestamp = Math.floor(eventData.date.getTime() / 1000);
 
-    console.log("contract:- ",await contract.getAddress());
+    console.log("contract:- ", await contract.getAddress());
 
     const tx = await contract.createEvent(
       eventData.title,
@@ -304,13 +343,91 @@ export const contractService = {
     const receipt = await tx.wait();
     return { txHash: receipt.hash };
   },
+  // List a ticket for resale
+  async listTicket(tokenId: string, price: string) {
+    if (!tokenId || !price) {
+      throw new Error('Missing required parameters for ticket listing');
+    }
+
+    const contract = await getContract(true);
+    const priceInWei = ethers.parseEther(price);
+
+    const tx = await contract.listTicket(tokenId, priceInWei);
+    const receipt = await tx.wait();
+    return { txHash: receipt.hash };
+  },
+
+  // Cancel a ticket listing
+  async cancelListing(tokenId: string) {
+    if (!tokenId) {
+      throw new Error('Token ID is required');
+    }
+
+    const contract = await getContract(true);
+    const tx = await contract.cancelListing(tokenId);
+    const receipt = await tx.wait();
+    return { txHash: receipt.hash };
+  },
+
+  // Buy a listed ticket
+  async buyTicket(tokenId: string, price: string) {
+    if (!tokenId || !price) {
+      throw new Error('Missing required parameters for buying ticket');
+    }
+
+    const contract = await getContract(true);
+    const priceInWei = ethers.parseEther(price);
+
+    const tx = await contract.buyTicket(tokenId, { value: priceInWei });
+    const receipt = await tx.wait();
+    return { txHash: receipt.hash };
+  },
+
+  // Verify a ticket's validity
+  async verifyTicket(tokenId: string): Promise<{ ticket: TicketData; event: EventData; isValid: boolean; message: string }> {
+    if (!tokenId) {
+      throw new Error('Token ID is required');
+    }
+
+    try {
+      const ticket = await this.getTicket(tokenId);
+      const event = await this.getEvent(ticket.eventId);
+
+      const now = new Date();
+      let isValid = true;
+      let message = 'Ticket is valid.';
+
+      if (ticket.isUsed) {
+        isValid = false;
+        message = 'This ticket has already been used.';
+      } else if (now > event.date) {
+        isValid = false;
+        message = 'This ticket is for an event that has already ended.';
+      } else if (!event.isActive) {
+        isValid = false;
+        message = 'This ticket is for an event that has been cancelled.';
+      }
+
+      return { ticket, event, isValid, message };
+    } catch (error) {
+      // If the ticket or event doesn't exist, the contract calls will throw an error.
+      // We catch it and return a clear "invalid" status.
+      return {
+        ticket: {} as TicketData,
+        event: {} as EventData,
+        isValid: false,
+        message: 'This ticket is invalid or does not exist.',
+      };
+    }
+  },
 
   // Get all active events (for marketplace/discovery)
   async getAllActiveEvents(): Promise<EventData[]> {
     const contract = await getContract();
 
     const events = [];
-    let eventId = 1; 
+    let eventId = 1;
+    const eventCount = await contract.getEventCount();
     try {
       while (true) {
         try {
@@ -321,8 +438,8 @@ export const contractService = {
           eventId++;
 
           // Safety break to prevent infinite loops
-          if (eventId > 10) {
-            console.warn('Reached maximum event ID limit (10)');
+          if (eventId > eventCount) {
+            console.warn('Reached maximum event ID limit', eventCount);
             break;
           }
         } catch (error) {
@@ -335,7 +452,46 @@ export const contractService = {
     }
 
     return events;
+  },
+  // Get all listings (for marketplace)
+  async listings(): Promise<{
+    tokenId: string; seller: string; price: string;
+    active: boolean;
+  }[]> {
+    const contract = await getContract();
+
+    const listings = [];
+    let tokenId = 1;
+    const maxTokenId = 10 // Arbitrary
+    try {
+      while (true) {
+        try {
+          const listing = await contract.listings(tokenId);
+          if (listing.active) {
+            listings.push({
+              tokenId: listing.tokenId.toString(),
+              seller: listing.seller,
+              price: ethers.formatEther(listing.price),
+              active: listing.active
+            });
+          }
+          tokenId++;
+          // Safety break to prevent infinite loops
+          if (tokenId > maxTokenId) {
+            console.warn('Reached maximum token ID limit', maxTokenId);
+            break;
+          }
+        } catch (error) {
+          // No more listings
+          break;
+        }
+      }
+    } catch (error) {
+      console.log('Finished loading listings');
+    }
+    return listings;
   }
+
 };
 
 // Utility functions
@@ -348,9 +504,9 @@ export const formatAddress = (address: string) => {
 
 export const formatPrice = (priceInEth: string) => {
   if (!priceInEth || isNaN(parseFloat(priceInEth))) {
-    return '0.0000 ETH';
+    return '0.0000 STT';
   }
-  return `${parseFloat(priceInEth).toFixed(4)} ETH`;
+  return `${parseFloat(priceInEth).toFixed(4)} STT`;
 };
 
 export const isEventActive = (event: EventData) => {

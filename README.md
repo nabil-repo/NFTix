@@ -19,7 +19,7 @@ NFTicket is a fully on-chain event ticketing platform that issues tickets as NFT
 ### Prerequisites
 - Node.js 18+ and npm
 - MetaMask wallet
-- Somnia testnet ETH for transactions
+- Somnia testnet STT for transactions
 ### Installation
 1. Clone the repository
 2. Install dependencies:
@@ -52,7 +52,7 @@ Add Somnia testnet to MetaMask:
 - **Network Name**: Somnia Testnet
 - **RPC URL**: https://dream-rpc.somnia.network
 - **Chain ID**: 501001
-- **Currency Symbol**: ETH
+- **Currency Symbol**: STT
 - **Explorer**: https://somnia-testnet-explorer.vercel.app
 ## Usage
 ### For Event Organizers
@@ -63,7 +63,7 @@ Add Somnia testnet to MetaMask:
 ### For Attendees
 1. Connect your wallet
 2. Browse available events
-3. Purchase NFT tickets with ETH
+3. Purchase NFT tickets with STT
 4. View tickets in "My Tickets"
 5. Use QR codes for event check-in
 ### For Secondary Market
@@ -107,14 +107,18 @@ For support and questions:
 - Join our community discussions
 ---
 Built with ❤️ for the future of event ticketing
-
+(base) PS D:\Projects\NFT_ticketing\nft-ticketing> npx hardhat compile
+[dotenv@17.2.1] injecting env (1) from .env -- tip: 🛠️  run anywhere with `dotenvx ruun -- yourcommand`
+Compiled 1 Solidity file successfully (evm target: paris).
+(base) PS D:\Projects\NFT_ticketing\nft-ticketing> 
+(base) PS D:\Projects\NFT_ticketing\nft-ticketing> npx hardhat run scripts/deploy.js --network somnia-testnet
 
 === Deployment Summary ===
 {
   "network": "somnia-testnet",
-  "contractAddress": "0xF71f8DEF4c850b076c37B536252B7D5C1D0b1017",
+  "contractAddress": "0x2326046046AFbbF22e6547f360A59D1F9E19bd7A",
   "deployer": "0x236322EB2858D87B2D2Efb00887845e7E7f4CB93",
   "platformWallet": "0x236322EB2858D87B2D2Efb00887845e7E7f4CB93",
-  "blockNumber": 157988974,
-  "transactionHash": "0x7223ef397b3dd88dce2265783efc38dd6a309e4cf6c49b9bea1f3c11d5b24972"
+  "blockNumber": 159167805,
+  "transactionHash": "0xf78d3fdbe4acf6528b8d82e784774a3943fccf1feba75c66340e65f2d6566f47"
 }
