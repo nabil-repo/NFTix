@@ -12,6 +12,7 @@ import { useContract } from '@/hooks/useContract';
 import { formatAddress } from '@/lib/contracts';
 import { contractService } from '@/lib/contracts';
 import ListMyTicket from '@/components/ui/listMyTicket';
+import AlertDialog from '@/components/alert-dialog';
 
 export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,13 +23,13 @@ export default function Marketplace() {
   const [totalVolume, setTotalVolume] = useState('0');
   const [totalTicketsSold, setTotalTicketsSold] = useState(0);
   const [userTickets, setUserTickets] = useState<any[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [DialogTitle, setDialogTitle] = useState('');
 
   const {
     account,
     isConnectedToCorrectNetwork,
     getEvents,
-    getUserTickets,
-    transferTicket,
     getTicketsByOwner,
     getTicket,
     isLoading: contractLoading,
@@ -119,42 +120,35 @@ export default function Marketplace() {
   const loadMarketplaceData = async () => {
     setIsLoading(true);
     try {
-      const events = await getEvents();
+      //const events = await getEvents(0, 10);
       const listings: any[] = [];
-
-      // for (const event of events) {
-      //   if (Number(event.soldTickets) > 0) {
-      //     // Instead of Math.random, fetch actual tickets
-
-      //     if (!account) continue;
 
       const ticketIds = await getAllListings(); // or query indexed events
       console.log("all listings", ticketIds[0]);
-      // for (const tokenId of ticketIds) {
-      //   if (tokenId === null) continue; // skip invalid tokenId
-      //   const ticket = await getTicket(tokenId.tokenId);
 
-      //   listings.push({
-      //     id: `${ticket.tokenId}`,
-      //     eventId: ticket.eventId,
-      //     tokenId: ticket.tokenId,
-      //     eventTitle: event.title,
-      //     eventDescription: event.description,
-      //     date: event.date,
-      //     location: event.location,
-      //     originalPrice: event.ticketPrice,
-      //     currentPrice: ticket.originalPrice, // resale listing price logic
-      //     seller: ticket.owner,
-      //     // verified: verifiedOrganizers[event.organizer],
-      //     timeLeft: "—", // you can calculate based on event.date
-      //     maxTickets: event.maxTickets,
-      //     soldTickets: event.soldTickets,
-      //     organizer: event.organizer,
-      //   });
-      //  }
-      // }
-      // }
+      for (const tokenId of ticketIds) {
+        if (tokenId === null) continue; // skip invalid tokenId
+        const ticket = await getTicket(tokenId.tokenId);
+        const event = await getEvent(ticket.eventId);
 
+        listings.push({
+          id: `${ticket.tokenId}`,
+          eventId: ticket.eventId,
+          tokenId: ticket.tokenId,
+          eventTitle: event.title,
+          eventDescription: event.description,
+          date: event.date,
+          location: event.location,
+          originalPrice: event.ticketPrice,
+          currentPrice: ticket.originalPrice, // resale listing price logic
+          seller: ticket.owner,
+          // verified: verifiedOrganizers[event.organizer],
+          timeLeft: "—", // you can calculate based on event.date
+          maxTickets: event.maxTickets,
+          soldTickets: event.soldTickets,
+          organizer: event.organizer
+        });
+      }
 
       setMarketplaceListings(listings);
       setTotalTicketsSold(listings.length);
@@ -195,44 +189,27 @@ export default function Marketplace() {
 
   const buyTicket = async (listing: any) => {
     if (!account || !isConnectedToCorrectNetwork) {
-      alert('Please connect your wallet to Somnia testnet first');
+      setDialogTitle('Please connect your wallet to Somnia testnet first');
+      setDialogOpen(true);
       return;
     }
 
     try {
       const tx = await contractService.buyTicket(listing.tokenId, listing.currentPrice);
-      alert(`Ticket purchased successfully! Tx: ${tx.txHash}`);
+      setDialogTitle('Ticket purchased successfully! Tx: ' + tx.txHash);
+      setDialogOpen(true);
       await loadMarketplaceData(); // reload marketplace after purchase
     } catch (error: any) {
       console.error('Failed to buy ticket:', error);
-      alert(error.message || 'Transaction failed');
-    }
-  };
-
-
-  const listMyTicket = async () => {
-    if (!account || !isConnectedToCorrectNetwork) {
-      alert('Please connect your wallet to Somnia testnet first');
-      return;
-    }
-
-    try {
-      const tokenId = prompt('Enter your Ticket Token ID:');
-      const price = prompt('Enter resale price in STT:');
-      if (!tokenId || !price) return;
-
-      const tx = await contractService.listTicket(tokenId, price);
-      alert(`Ticket listed successfully! Tx: ${tx.txHash}`);
-      await loadMarketplaceData(); // reload listings
-    } catch (error: any) {
-      console.error('Failed to list ticket:', error);
-      alert(error.message || 'Transaction failed');
+      setDialogTitle('Transaction failed' + (error.message ? ': ' + error.message : ''));
+      setDialogOpen(true);
     }
   };
 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <AlertDialog onCancel={() => { setDialogOpen(false) }} onConfirm={() => { setDialogOpen(false); }} open={dialogOpen} title={DialogTitle} />
       {/* Header */}
       <header className="border-b border-white/10 backdrop-blur-lg bg-black/20">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -250,16 +227,18 @@ export default function Marketplace() {
               NFTicket
             </h1>
           </div>
-       
+
           <ListMyTicket
             userTickets={userTickets}
             onListTicket={async (ticketId, price) => {
               try {
                 const tx = await contractService.listTicket(ticketId, price);
-                alert(`Ticket listed successfully! Tx: ${tx.txHash}`);
+                setDialogTitle('Ticket Listed Successfully! Tx: ' + tx.txHash);
+                setDialogOpen(true);
                 await loadMarketplaceData();
               } catch (error: any) {
-                alert("TRANSFER_COOLDOWN: Cooldown period active wait for 24 hours before listing...");
+                setDialogTitle('Transaction Failed' + (error.message ? ': ' + error.message : ''));
+                setDialogOpen(true);
               }
             }}
           />
@@ -326,7 +305,7 @@ export default function Marketplace() {
                   <h3 className="text-white font-semibold mb-2">Anti-Scalping Protection Active</h3>
                   <p className="text-gray-300 text-sm">
                     All resale tickets are automatically capped at 110% of original price.
-                    5% royalty goes to event organizers. Transfer cooldowns prevent rapid speculation.
+                    5% royalty goes to event organizers. Transfer cooldown period (24 hours) prevent rapid speculation.
                   </p>
                 </div>
               </div>

@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useContract } from '@/hooks/useContract';
 import { useRouter } from 'next/navigation';
 import { set } from 'date-fns';
+import AlertDialog from '@/components/alert-dialog';
 
 
 export default function CreateEvent() {
@@ -34,7 +35,8 @@ export default function CreateEvent() {
   const imgbbApiKey = "f5f1c8c9c5637a9c09d685bc5ada689f";
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogTitle, setDialogTitle] = useState('');
 
 
   const handleInputChange = (field: string, value: string) => {
@@ -59,9 +61,13 @@ export default function CreateEvent() {
         setEventData(prev => ({ ...prev, imageUrl: data.data.url }));
       } else {
         setUploadError('Image upload failed.');
+        setDialogTitle('Image upload failed.');
+        setDialogOpen(true);
       }
     } catch (err) {
       setUploadError('Image upload failed.');
+      setDialogTitle('Image upload failed.');
+      setDialogOpen(true);
     }
     setUploading(false);
   };
@@ -70,13 +76,17 @@ export default function CreateEvent() {
     e.preventDefault();
 
     if (!account || !isConnectedToCorrectNetwork) {
-      alert('Please connect your wallet to Somnia testnet first');
+      //   alert('Please connect your wallet to Somnia testnet first');
+      setDialogTitle('Please connect your wallet to Somnia testnet first');
+      setDialogOpen(true);
       return;
     }
 
     if (!eventData.title || !eventData.description || !eventData.location ||
       !eventData.date || !eventData.time || !eventData.maxTickets || !eventData.ticketPrice) {
-      alert('Please fill in all required fields');
+      //    alert('Please fill in all required fields');
+      setDialogTitle('Please fill in all required fields');
+      setDialogOpen(true);
       return;
     }
 
@@ -86,7 +96,8 @@ export default function CreateEvent() {
       console.log("event date:- " + eventDateTime.toString() + " eventData.date :" + eventData.date + " eventData.date : " + eventData.time);
 
       if (eventDateTime <= new Date()) {
-        alert('Event date must be in the future');
+        setDialogTitle('Event date must be in the future');
+        setDialogOpen(true);
         return;
       }
 
@@ -118,18 +129,25 @@ export default function CreateEvent() {
 
       const result = await createEvent(contractEventData);
 
-      alert(`Event created successfully! Event ID: ${result.eventId}\nTransaction: ${result.txHash}`);
-
+      setDialogTitle(`Event created successfully! Event ID: ${result.eventId}\nTransaction: ${result.txHash}`);
+      setDialogOpen(true);
       // Redirect to home page
       router.push('/');
 
     } catch (error: any) {
-      alert(`Failed to create event: ${error.message}`);
+      setDialogTitle(`Failed to create event: ${error.message}`);
+      setDialogOpen(true);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <AlertDialog
+        onCancel={() => { setDialogOpen(false) }}
+        onConfirm={() => { setDialogOpen(false) }}
+        open={dialogOpen}
+        title={dialogTitle}
+      />
       {/* Header */}
       <header className="border-b border-white/10 backdrop-blur-lg bg-black/20">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

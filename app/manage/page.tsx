@@ -8,6 +8,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { formatAddress, formatPrice, getEventStatus } from "@/lib/contracts";
 import { ArrowLeft, Ticket } from "lucide-react";
 import Link from 'next/link';
+import AlertDialog from "@/components/alert-dialog";
 
 interface EventMetadata {
     image?: string;
@@ -40,6 +41,9 @@ function getEventImage(event: EventWithMetadata): string {
 export default function ManagePage() {
     const { account, getUserEvents, cancelListing } = useContract();
     const [events, setEvents] = useState<any[]>([]);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogTitle, setDialogTitle] = useState('');
+
     type TicketData = {
         tokenId: number;
         isUsed?: boolean;
@@ -74,7 +78,8 @@ export default function ManagePage() {
             await contractService.deactivateEvent(eventId);
             await loadData();
         } catch (e) {
-            alert("Failed to cancel event");
+            setDialogTitle("Failed to cancel event");
+            setDialogOpen(true);
         } finally {
             setCancellingId(null);
         }
@@ -88,6 +93,13 @@ export default function ManagePage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pb-6">
+
+            <AlertDialog
+                onCancel={() => { setDialogOpen(false) }}
+                onConfirm={() => { setDialogOpen(false) }}
+                open={dialogOpen}
+                title={dialogTitle}
+            />
             {/* Header */}
             <header className="border-b border-white/10 backdrop-blur-lg bg-black/20">
                 <div className="container mx-auto px-4 py-4 flex items-center justify-between">

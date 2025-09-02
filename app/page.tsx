@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Calendar, MapPin, Users, Search, Ticket, Shield, Zap, Menu, ShapesIcon } from 'lucide-react';
+import { Calendar, MapPin, Users, Search, Ticket, Shield, Zap, Menu, VenetianMask, ShapesIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useContract } from '@/hooks/useContract';
 import { connectWallet } from '@/lib/web3';
+import AlertDialog from '@/components/alert-dialog';
 
 const features = [
   {
@@ -25,30 +26,30 @@ const features = [
     icon: <Ticket className="h-8 w-8" />,
     title: "Collectible Memories",
     description: "Your tickets become permanent digital collectibles and memories"
+  },
+  {
+    icon: <VenetianMask className="h-8 w-8" />,
+    title: "Anti-Speculation Mechanisms",
+    description: "Transfer cooldown periods (24 hours) prevent rapid speculation."
   }
 ];
 
-const categoryImages: { [key: string]: string } = {
-  music: 'https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800',
-  conference: 'https://images.pexels.com/photos/2833037/pexels-photo-2833037.jpeg?auto=compress&cs=tinysrgb&w=800',
-  sports: 'https://images.pexels.com/photos/163452/basketball-dunk-blue-game-163452.jpeg?auto=compress&cs=tinysrgb&w=800',
-  art: 'https://images.pexels.com/photos/102127/pexels-photo-102127.jpeg?auto=compress&cs=tinysrgb&w=800',
-  theater: 'https://images.pexels.com/photos/713149/pexels-photo-713149.jpeg?auto=compress&cs=tinysrgb&w=800',
-  workshop: 'https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=800',
-  default: 'https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800'
-};
 
-const getEventImage = (metadata: any) => {
-  const categoryAttribute = metadata.attributes?.find((attr: any) => attr.trait_type === 'Category');
-  const category = categoryAttribute?.value.toLowerCase();
-  return categoryImages[category] || categoryImages.default;
-}
+
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [events, setEvents] = useState<any[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogTitle, setDialogTitle] = useState('');
+  // Lazy load state
+  const [from, setFrom] = useState(0);
+  const [to, setTo] = useState(9); // 10 events per page (0-9)
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
   const {
     account,
     isConnectedToCorrectNetwork,
@@ -59,41 +60,60 @@ export default function Home() {
 
   } = useContract();
 
+
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
+
       setIsScrolled(window.scrollY > 10);
+
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Load events on component mount
+  // Load events on mount and when from/to changes
   useEffect(() => {
-    loadEvents();
-  }, []);
-
-  const loadEvents = async () => {
-    try {
-      const contractEvents = await getEvents();
-      const eventsWithMetadata = contractEvents.map(event => {
-        try {
-          const metadataJson = atob(event.metadataURI.split(',')[1]);
-          const metadata = JSON.parse(metadataJson);
-          const catagory = metadata.attributes?.find((attr: any) => attr.trait_type === 'Category')?.value || 'General';
-
-          return { ...event, image: metadata.image, description: metadata.description, catagory: catagory };
-        } catch (e) {
-          console.error("Failed to parse metadata for event", event.eventId, e);
-          return { ...event, image: 'https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800', description: event.description };
+    if (!hasMore && from !== 0) return;
+    const fetchEvents = async () => {
+      setLoadingMore(true);
+      try {
+        const contractEvents = await getEvents(from, to);
+        const eventsWithMetadata = contractEvents.map(event => {
+          try {
+            const metadataJson = atob(event.metadataURI.split(',')[1]);
+            const metadata = JSON.parse(metadataJson);
+            const catagory = metadata.attributes?.find((attr: any) => attr.trait_type === 'Category')?.value || 'General';
+            return { ...event, image: metadata.image, description: metadata.description, catagory: catagory };
+          } catch (e) {
+            console.error("Failed to parse metadata for event", event.eventId, e);
+            return { ...event, image: 'https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800', description: event.description };
+          }
+        });
+        if (eventsWithMetadata.length === 0) {
+          setHasMore(false);
+        } else {
+          setEvents(prev => from === 0 ? eventsWithMetadata : [...prev, ...eventsWithMetadata]);
+          if (eventsWithMetadata.length < to - from + 1) {
+            setHasMore(false);
+          }
         }
-      });
-      setEvents(eventsWithMetadata);
-    } catch (error) {
-      console.error('Failed to load events:', error);
-      // Fallback to empty array if contract not deployed yet
-      setEvents([]);
-    }
+      } catch (error) {
+        console.error('Failed to load events:', error);
+        if (from === 0) setEvents([]);
+        setHasMore(false);
+      } finally {
+        setLoadingMore(false);
+      }
+    };
+    fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [from, to]);
+
+  // Load more handler
+  const handleLoadMore = () => {
+    setFrom(prev => prev + 10);
+    setTo(prev => prev + 10);
   };
 
   const handleConnectWallet = async () => {
@@ -103,13 +123,15 @@ export default function Home() {
       window.location.reload();
     } catch (error) {
       console.error('Failed to connect wallet:', error);
-      alert('Failed to connect wallet. Please make sure MetaMask is installed and try again.');
+      setDialogTitle('Failed to connect wallet. Please make sure MetaMask is installed and try again.');
+      setDialogOpen(true);
     }
   };
 
   const handleBuyTicket = async (event: any) => {
     if (!account || !isConnectedToCorrectNetwork) {
-      alert('Please connect your wallet to Somnia testnet first');
+      setDialogTitle('Please connect your wallet to Somnia testnet first');
+      setDialogOpen(true);
       return;
     }
 
@@ -127,12 +149,16 @@ export default function Home() {
       }))}`;
 
       const result = await mintTicket(event.eventId, tokenURI, event.ticketPrice);
-      alert(`Ticket purchased successfully! Transaction: ${result.txHash}`);
+      setDialogTitle(`Ticket purchased successfully! Transaction: ${result.txHash}`);
+      setDialogOpen(true);
 
       // Reload events to update sold tickets count
-      loadEvents();
+      setFrom(0);
+      setTo(9);
+      setHasMore(true);
     } catch (error: any) {
-      alert(`Failed to purchase ticket: ${error.message}`);
+      setDialogTitle(`Failed to purchase ticket: ${error.message}`);
+      setDialogOpen(true);
     }
   };
 
@@ -141,8 +167,7 @@ export default function Home() {
     return new Date(event.date) > now &&
       (event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         event.location.toLowerCase().includes(searchQuery.toLowerCase()))
-  }
-  );
+  });
 
   const handleScrollToEvents = () => {
     document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' });
@@ -150,6 +175,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <AlertDialog
+        onCancel={() => { setDialogOpen(false) }}
+        onConfirm={() => { setDialogOpen(false) }}
+        open={dialogOpen}
+        title={dialogTitle}
+      />
       {/* Header */}
       <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-slate-900/80 backdrop-blur-lg shadow-lg' : 'bg-transparent'}`}>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -288,7 +319,7 @@ export default function Home() {
             </div>
           </div>
 
-          {isLoading ? (
+          {loadingMore && from === 0 ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-2 border-purple-400 border-t-transparent mx-auto mb-4"></div>
               <p className="text-gray-300">Loading events from blockchain...</p>
@@ -308,68 +339,81 @@ export default function Home() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredEvents.map((event) => (
-                <Card key={event.eventId} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 hover:transform hover:scale-[1.02] overflow-hidden group">
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={event.image}
-                      alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute top-4 right-4">
-                      <Badge className="bg-purple-600/90 text-white border-0">
-                        Event #{event.eventId}
-                      </Badge>
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                  </div>
-
-                  <CardHeader>
-                    <CardTitle className="text-white text-xl line-clamp-2">
-                      {event.title}
-                    </CardTitle>
-                    <CardDescription className="text-gray-300">
-                      {event.description}
-                    </CardDescription>
-                  </CardHeader>
-
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center text-gray-300 text-sm">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      {event.date.toLocaleDateString()} at {event.date.toLocaleTimeString()}
+            <>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredEvents.map((event) => (
+                  <Card key={event.eventId} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 hover:transform hover:scale-[1.02] overflow-hidden group">
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={event.image}
+                        alt={event.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <Badge className="bg-purple-600/90 text-white border-0">
+                          Event #{event.eventId}
+                        </Badge>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                     </div>
 
-                    <div className="flex items-center text-gray-300 text-sm">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      {event.location}
-                    </div>
-                    <div className="flex items-center text-gray-300 text-sm">
-                      <ShapesIcon className="h-4 w-4 mr-2" />
-                      {event.catagory?.toUpperCase()}
-                    </div>
+                    <CardHeader>
+                      <CardTitle className="text-white text-xl line-clamp-2">
+                        {event.title}
+                      </CardTitle>
+                      <CardDescription className="text-gray-300">
+                        {event.description}
+                      </CardDescription>
+                    </CardHeader>
 
-                    <div className="flex items-center text-gray-300 text-sm">
-                      <Users className="h-4 w-4 mr-2" />
-                      {event.maxTickets - event.soldTickets} of {event.maxTickets} available
-                    </div>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center text-gray-300 text-sm">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        {event.date.toLocaleDateString()} at {event.date.toLocaleTimeString()}
+                      </div>
 
-                    <div className="flex items-center justify-between pt-4">
-                      <span className="text-2xl font-bold text-purple-400">
-                        {event.ticketPrice} STT
-                      </span>
-                      <Button
-                        onClick={() => handleBuyTicket(event)}
-                        disabled={event.soldTickets >= event.maxTickets || !account}
-                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 disabled:opacity-50"
-                      >
-                        {event.soldTickets >= event.maxTickets ? 'Sold Out' : 'Buy Ticket'}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <div className="flex items-center text-gray-300 text-sm">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        {event.location}
+                      </div>
+                      <div className="flex items-center text-gray-300 text-sm">
+                        <ShapesIcon className="h-4 w-4 mr-2" />
+                        {event.catagory?.toUpperCase()}
+                      </div>
+
+                      <div className="flex items-center text-gray-300 text-sm">
+                        <Users className="h-4 w-4 mr-2" />
+                        {event.maxTickets - event.soldTickets} of {event.maxTickets} available
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4">
+                        <span className="text-2xl font-bold text-purple-400">
+                          {event.ticketPrice} STT
+                        </span>
+                        <Button
+                          onClick={() => handleBuyTicket(event)}
+                          disabled={event.soldTickets >= event.maxTickets || !account}
+                          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 disabled:opacity-50"
+                        >
+                          {event.soldTickets >= event.maxTickets ? 'Sold Out' : 'Buy Ticket'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              {hasMore && (
+                <div className="flex justify-center mt-8">
+                  <Button
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 px-8 py-3"
+                  >
+                    {loadingMore ? 'Loading...' : 'Load More'}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

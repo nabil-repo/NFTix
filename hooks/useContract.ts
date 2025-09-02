@@ -85,12 +85,12 @@ export const useContract = () => {
   }, []);
 
   // Get events
-  const getEvents = useCallback(async () => {
+  const getEvents = useCallback(async (from: number, to: number) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const events = await contractService.getAllActiveEvents();
+      const events = await contractService.getAllActiveEvents(from, to);
       return events;
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to load events';

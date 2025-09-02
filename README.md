@@ -113,12 +113,13 @@ Compiled 1 Solidity file successfully (evm target: paris).
 (base) PS D:\Projects\NFT_ticketing\nft-ticketing> 
 (base) PS D:\Projects\NFT_ticketing\nft-ticketing> npx hardhat run scripts/deploy.js --network somnia-testnet
 
+
 === Deployment Summary ===
 {
   "network": "somnia-testnet",
-  "contractAddress": "0x2326046046AFbbF22e6547f360A59D1F9E19bd7A",
+  "contractAddress": "0x1ded6Fb69011cd3b82C7e6218d24E12f083e967F",
   "deployer": "0x236322EB2858D87B2D2Efb00887845e7E7f4CB93",
   "platformWallet": "0x236322EB2858D87B2D2Efb00887845e7E7f4CB93",
-  "blockNumber": 159167805,
-  "transactionHash": "0xf78d3fdbe4acf6528b8d82e784774a3943fccf1feba75c66340e65f2d6566f47"
+  "blockNumber": 165905817,
+  "transactionHash": "0x0bbb9c0071cc5a856eb19da8cf72e71294b93fc0891807c7dcf466160c399860"
 }

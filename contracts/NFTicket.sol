@@ -60,6 +60,7 @@ contract NFTicket is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
     event TicketListed(uint256 indexed tokenId, address indexed seller, uint256 price);
     event TicketUnlisted(uint256 indexed tokenId, address indexed seller);
     event TicketBought(uint256 indexed tokenId, address indexed buyer, uint256 price);
+    event TicketTransferred(uint256 indexed tokenId, address indexed from, address indexed to, uint256 price);
 
     constructor() ERC721("NFTicket", "NFTIX") Ownable() {}
 
@@ -147,10 +148,7 @@ contract NFTicket is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
         require(ownerOf(_tokenId) == msg.sender, "Not ticket owner");
         Ticket storage ticket = tickets[_tokenId];
         require(!ticket.isUsed, "Used ticket cannot be listed");
-        require(
-            block.timestamp >= lastTransferTime[_tokenId] + TRANSFER_COOLDOWN,
-            "Transfer cooldown not met"
-        );
+        //require(block.timestamp >= lastTransferTime[_tokenId] + TRANSFER_COOLDOWN,"Transfer cooldown not met");
 
         uint256 maxResalePrice = (ticket.originalPrice * MAX_RESALE_PERCENTAGE) / 100;
         require(_price <= maxResalePrice, "Exceeds max resale price");
@@ -164,6 +162,40 @@ contract NFTicket is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
 
         emit TicketListed(_tokenId, msg.sender, _price);
     }
+
+    function transferTicket(uint256 _tokenId, address _to, uint256 _price)
+        external
+        nonReentrant
+    {
+        require(ownerOf(_tokenId) != address(0), "Ticket does not exist");
+        require(ownerOf(_tokenId) == msg.sender, "You don't own this ticket");
+        require(_to != address(0), "Invalid recipient address");
+
+        Ticket storage ticket = tickets[_tokenId];
+        require(!ticket.isUsed, "Cannot transfer used ticket");
+        //require(block.timestamp >= lastTransferTime[_tokenId] + TRANSFER_COOLDOWN,"Transfer cooldown period not met");
+
+        // Anti-scalping: Check maximum resale price
+        uint256 maxResalePrice = (ticket.originalPrice * MAX_RESALE_PERCENTAGE) / 100;
+        require(_price <= maxResalePrice, "Price exceeds maximum resale limit");
+
+        // Calculate royalty for original organizer
+        Event storage eventData = events[ticket.eventId];
+        uint256 royalty = (_price * ROYALTY_PERCENTAGE) / 100;
+        uint256 sellerAmount = _price - royalty;
+
+        // Transfer payment
+        payable(msg.sender).transfer(sellerAmount);
+        payable(eventData.organizer).transfer(royalty);
+
+        // Transfer NFT
+        _transfer(msg.sender, _to, _tokenId);
+        ticket.owner = _to;
+        lastTransferTime[_tokenId] = block.timestamp;
+
+        emit TicketTransferred(_tokenId, msg.sender, _to, _price);
+    }
+
 
     function cancelListing(uint256 _tokenId) external {
         Listing storage listing = listings[_tokenId];
@@ -226,6 +258,49 @@ contract NFTicket is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
     function getTicket(uint256 _tokenId) external view returns (Ticket memory) {
         return tickets[_tokenId];
     }
+
+
+    function getEventsByOrganizer(address _organizer) external view returns (uint256[] memory) {
+        uint256[] memory organizerEvents = new uint256[](_eventIdCounter.current());
+        uint256 count = 0;
+
+        for (uint256 i = 1; i <= _eventIdCounter.current(); i++) {
+            if (events[i].organizer == _organizer) {
+                organizerEvents[count] = i;
+                count++;
+            }
+        }
+
+        // Resize array to actual count
+        uint256[] memory result = new uint256[](count);
+        for (uint256 i = 0; i < count; i++) {
+            result[i] = organizerEvents[i];
+        }
+
+        return result;
+    }
+
+    function getTicketsByOwner(address _owner) external view returns (uint256[] memory) {
+        uint256 balance = balanceOf(_owner);
+        uint256[] memory ownerTickets = new uint256[](balance);
+        uint256 count = 0;
+
+        for (uint256 i = 1; i <= _tokenIdCounter.current(); i++) {
+            if (ownerOf(i) == _owner) {
+                ownerTickets[count] = i;
+                count++;
+            }
+        }
+
+        // Resize array to actual count
+        uint256[] memory result = new uint256[](count);
+        for (uint256 i = 0; i < count; i++) {
+            result[i] = ownerTickets[i];
+        }
+
+        return result;
+    }
+
 
     function verifyOrganizer(address _organizer) external onlyOwner {
         verifiedOrganizers[_organizer] = true;

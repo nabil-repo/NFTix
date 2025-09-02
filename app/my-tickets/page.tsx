@@ -140,6 +140,7 @@ export default function MyTickets() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      
       {/* Hidden Ticket Preview for PNG Download */}
       {ticketToDownload && (
         <div style={{ position: 'fixed', top: 0, left: 0, zIndex: 5, padding: 24 }} ref={ticketPreviewRef}>

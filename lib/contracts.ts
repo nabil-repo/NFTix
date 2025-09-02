@@ -37,6 +37,7 @@ export const NFT_TICKET_ABI = [
   "event TicketMinted(uint256 indexed tokenId, uint256 indexed eventId, address indexed buyer)",
   "event TicketUnlisted(uint256 indexed tokenId, address indexed seller)",
   "event TicketUsed(uint256 indexed tokenId, uint256 indexed eventId)",
+  "event TicketTransferred(uint256 indexed tokenId, address indexed from, address indexed to, uint256 price)", // ✅ added
   "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
 
   // --- Read Functions ---
@@ -47,7 +48,6 @@ export const NFT_TICKET_ABI = [
   "function events(uint256) view returns (uint256 eventId, string title, string description, string location, uint256 date, uint256 ticketPrice, uint256 maxTickets, uint256 soldTickets, address organizer, bool isActive, string metadataURI)",
   "function fetchEvent(uint256 _eventId) view returns (tuple(uint256 eventId, string title, string description, string location, uint256 date, uint256 ticketPrice, uint256 maxTickets, uint256 soldTickets, address organizer, bool isActive, string metadataURI))",
   "function getApproved(uint256 tokenId) view returns (address)",
-  "function getEventCount() view returns (uint256)",
   "function getEventsByOrganizer(address _organizer) view returns (uint256[])",
   "function getTicket(uint256 _tokenId) view returns (tuple(uint256 tokenId, uint256 eventId, address owner, bool isUsed, uint256 purchaseTime, uint256 originalPrice))",
   "function getTicketsByOwner(address _owner) view returns (uint256[])",
@@ -81,8 +81,9 @@ export const NFT_TICKET_ABI = [
   "function verifyOrganizer(address _organizer)",
   "function withdraw()"
 ];
+
 // Contract address (will be set after deployment)
-export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x2326046046AFbbF22e6547f360A59D1F9E19bd7A';
+export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x1ded6Fb69011cd3b82C7e6218d24E12f083e967F';
 
 // Somnia testnet configuration
 export const SOMNIA_TESTNET_CONFIG = {
@@ -129,6 +130,17 @@ export const getContract = async (withSigner = false) => {
     return new ethers.Contract(NFT_TICKET_CONTRACT_ADDRESS, NFT_TICKET_ABI, provider);
   }
 };
+
+function formatTimeLeft(seconds: bigint) {
+  const sec = Number(seconds);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+
+  if (h > 0) return `${h}h ${m}m ${s}s`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
 
 // Contract interaction functions
 export const contractService = {
@@ -323,6 +335,7 @@ export const contractService = {
     return { txHash: receipt.hash };
   },
 
+
   // Transfer ticket in marketplace
   async transferTicket(tokenId: string, toAddress: string, price: string) {
     if (!tokenId || !toAddress || !price) {
@@ -350,6 +363,22 @@ export const contractService = {
     }
 
     const contract = await getContract(true);
+
+    let TRANSFER_COOLDOWN = await contract.TRANSFER_COOLDOWN();
+    let lastTransferTime = await contract.lastTransferTime(tokenId);
+
+    console.log('Last transfer time:', lastTransferTime);
+    console.log('Current time:', Date.now());
+
+    const now = BigInt(Math.floor(Date.now() / 1000));
+    const timeLeft = lastTransferTime + TRANSFER_COOLDOWN - now;
+
+
+    if (lastTransferTime + TRANSFER_COOLDOWN > now) {
+      throw new Error('Transfer cooldown in effect , time left: ' + formatTimeLeft(timeLeft));
+    }
+
+
     const priceInWei = ethers.parseEther(price);
 
     const tx = await contract.listTicket(tokenId, priceInWei);
@@ -376,6 +405,8 @@ export const contractService = {
     }
 
     const contract = await getContract(true);
+
+
     const priceInWei = ethers.parseEther(price);
 
     const tx = await contract.buyTicket(tokenId, { value: priceInWei });
@@ -422,12 +453,12 @@ export const contractService = {
   },
 
   // Get all active events (for marketplace/discovery)
-  async getAllActiveEvents(): Promise<EventData[]> {
+  async getAllActiveEvents(from: number, to: number): Promise<EventData[]> {
     const contract = await getContract();
 
     const events = [];
-    let eventId = 1;
-    const eventCount = await contract.getEventCount();
+    let eventId = from;
+    const eventCount = to;
     try {
       while (true) {
         try {
