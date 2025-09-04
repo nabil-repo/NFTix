@@ -135,7 +135,8 @@ export default function CreateEvent() {
       router.push('/');
 
     } catch (error: any) {
-      setDialogTitle(`Failed to create event: ${error.message}`);
+      console.error('Error creating event:', error);
+      setDialogTitle(`Failed to create event`);
       setDialogOpen(true);
     }
   };
@@ -162,7 +163,7 @@ export default function CreateEvent() {
               <Ticket className="h-4 w-4 text-white" />
             </div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              NFTicket
+              NFTix
             </h1>
           </div>
         </div>
@@ -381,7 +382,7 @@ export default function CreateEvent() {
           {/* Benefits Card */}
           <Card className="mt-8 bg-gradient-to-b from-purple-900 to-blue-900 border-purple-500">
             <CardHeader>
-              <CardTitle className="text-white">Why Create on NFTicket?</CardTitle>
+              <CardTitle className="text-white">Why Create on NFTix?</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-start space-x-3">

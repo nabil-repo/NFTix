@@ -6,7 +6,7 @@ import NetworkStatus from '@/components/NetworkStatus';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'NFTicket - Blockchain Event Ticketing',
+  title: 'NFTix - Blockchain Event Ticketing',
   description: 'Secure, transparent, and fraud-proof NFT tickets on the Somnia blockchain',
 };
 

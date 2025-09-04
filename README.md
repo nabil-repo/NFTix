@@ -1,7 +1,7 @@
-# NFTicket - Blockchain Event Ticketing Platform
+# NFTix - Blockchain Event Ticketing Platform
 
 ## Features
-NFTicket is a fully on-chain event ticketing platform that issues tickets as NFTs on the Somnia testnet. This eliminates fraud, enables secure transfers, and provides transparent ticket ownership.
+NFTix is a fully on-chain event ticketing platform that issues tickets as NFTs on the Somnia testnet. This eliminates fraud, enables secure transfers, and provides transparent ticket ownership.
 - **🎫 NFT Tickets**: Each ticket is a unique NFT on the blockchain
 - **🔒 Fraud-Proof**: Impossible to counterfeit blockchain-based tickets
 - **💸 Anti-Scalping**: Built-in price limits and royalty system
@@ -38,7 +38,7 @@ NFTicket is a fully on-chain event ticketing platform that issues tickets as NFT
 ### Smart Contract Deployment
 1. **Using Remix IDE (Recommended)**:
    - Go to [Remix IDE](https://remix.ethereum.org/)
-   - Create a new file and copy the contract from `contracts/NFTicket.sol`
+   - Create a new file and copy the contract from `contracts/NFTix.sol`
    - Compile with Solidity 0.8.19+
    - Deploy using MetaMask on Somnia testnet
    - Copy the deployed contract address
@@ -79,7 +79,7 @@ Add Somnia testnet to MetaMask:
 - **Web3**: ethers.js v6
 - **Icons**: Lucide React
 ## Smart Contract Architecture
-The NFTicket contract includes:
+The NFTix contract includes:
 - **ERC721**: Standard NFT functionality
 - **Event Management**: Create and manage events
 - **Ticket Minting**: Mint NFT tickets with metadata
@@ -117,9 +117,9 @@ Compiled 1 Solidity file successfully (evm target: paris).
 === Deployment Summary ===
 {
   "network": "somnia-testnet",
-  "contractAddress": "0x1ded6Fb69011cd3b82C7e6218d24E12f083e967F",
-  "deployer": "0x236322EB2858D87B2D2Efb00887845e7E7f4CB93",
-  "platformWallet": "0x236322EB2858D87B2D2Efb00887845e7E7f4CB93",
-  "blockNumber": 165905817,
-  "transactionHash": "0x0bbb9c0071cc5a856eb19da8cf72e71294b93fc0891807c7dcf466160c399860"
+  "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "platformWallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "blockNumber": 1,
+  "transactionHash": "0x7096761138f73692d0114ce37d7d033883a0bd4ac0caf0ddce70876d59401f6a"
 }

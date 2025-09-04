@@ -1,7 +1,7 @@
 {
   "_format": "hh3-artifact-1",
-  "contractName": "NFTicket",
-  "sourceName": "contracts/NFTicket.sol",
+  "contractName": "NFTix",
+  "sourceName": "contracts/NFTix.sol",
   "abi": [
     {
       "inputs": [],
@@ -509,7 +509,7 @@
               "type": "string"
             }
           ],
-          "internalType": "struct NFTicket.Event",
+          "internalType": "struct NFTix.Event",
           "name": "",
           "type": "tuple"
         }
@@ -598,7 +598,7 @@
               "type": "uint256"
             }
           ],
-          "internalType": "struct NFTicket.Ticket",
+          "internalType": "struct NFTix.Ticket",
           "name": "",
           "type": "tuple"
         }
@@ -1025,6 +1025,6 @@
   "linkReferences": {},
   "deployedLinkReferences": {},
   "immutableReferences": {},
-  "inputSourceName": "project/contracts/NFTicket.sol",
+  "inputSourceName": "project/contracts/NFTix.sol",
   "buildInfoId": "solc-0_8_19-e8d79e30bb918a2f138eede3a44dda95194ef25a"
 }

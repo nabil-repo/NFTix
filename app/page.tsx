@@ -5,11 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Calendar, MapPin, Users, Search, Ticket, Shield, Zap, Menu, VenetianMask, ShapesIcon } from 'lucide-react';
+import { Calendar, MapPin, Users, Search, Ticket, Shield, Zap, Menu, VenetianMask, ShapesIcon, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import { useContract } from '@/hooks/useContract';
 import { connectWallet } from '@/lib/web3';
+import { contractService, formatAddress } from '@/lib/contracts';
 import AlertDialog from '@/components/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import QrScanner from '@/components/QrScanner';
 
 const features = [
   {
@@ -49,6 +53,12 @@ export default function Home() {
   const [to, setTo] = useState(9); // 10 events per page (0-9)
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+
+  // Ticket verification state
+  const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
+  const [verifyTicketId, setVerifyTicketId] = useState('');
+  const [verificationResult, setVerificationResult] = useState<any>(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const {
     account,
@@ -114,6 +124,41 @@ export default function Home() {
   const handleLoadMore = () => {
     setFrom(prev => prev + 10);
     setTo(prev => prev + 10);
+  };
+
+  // Ticket verification functions
+  const handleVerifyTicket = async (ticketId?: string) => {
+    const idToVerify = ticketId || verifyTicketId;
+    if (!idToVerify) return;
+    try {
+      const result = await contractService.verifyTicket(idToVerify);
+      setVerificationResult(result);
+      setIsVerifyDialogOpen(true);
+    } catch (error) {
+      console.error('Failed to verify ticket:', error);
+      setVerificationResult({ isValid: false, message: 'Verification failed.' });
+      setIsVerifyDialogOpen(true);
+    }
+  };
+
+  const onScanSuccess = (decodedText: string, decodedResult: any) => {
+    try {
+      const qrData = JSON.parse(decodedText);
+      if (qrData.tokenId) {
+        setVerifyTicketId(qrData.tokenId);
+        handleVerifyTicket(qrData.tokenId);
+        setIsScannerOpen(false);
+      }
+    } catch (error) {
+      console.error("Failed to parse QR code:", error);
+      setVerificationResult({ isValid: false, message: "Invalid QR code." });
+      setIsVerifyDialogOpen(true);
+      setIsScannerOpen(false);
+    }
+  };
+
+  const onScanFailure = (error: any) => {
+    console.error("QR Code scan failed:", error);
   };
 
   const handleConnectWallet = async () => {
@@ -189,7 +234,7 @@ export default function Home() {
               <Ticket className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              NFTicket
+              NFTix
             </h1>
           </div>
           <nav className="hidden md:flex items-center space-x-6">
@@ -198,6 +243,20 @@ export default function Home() {
             <Link href="/manage" className="text-white hover:text-purple-300 transition-colors">Manage Event</Link>
             <Link href="/my-tickets" className="text-white hover:text-purple-300 transition-colors">My Tickets</Link>
             <Link href="/marketplace" className="text-white hover:text-purple-300 transition-colors">Marketplace</Link>
+            
+            {/* Ticket Verification */}
+            <Dialog open={isVerifyDialogOpen} onOpenChange={setIsVerifyDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-white"
+                >
+                  <QrCode className="h-4 w-4 mr-2" />
+                  Verify Ticket
+                </Button>
+              </DialogTrigger>
+            </Dialog>
           </nav>
           <div className="flex items-center space-x-4">
             <Button
@@ -223,6 +282,15 @@ export default function Home() {
               <Link href="/manage" className="text-white hover:text-purple-300 transition-colors">Manage Event</Link>
               <Link href="/my-tickets" className="text-white hover:text-purple-300 transition-colors">My Tickets</Link>
               <Link href="/marketplace" className="text-white hover:text-purple-300 transition-colors">Marketplace</Link>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-white"
+                onClick={() => setIsVerifyDialogOpen(true)}
+              >
+                <QrCode className="h-4 w-4 mr-2" />
+                Verify Ticket
+              </Button>
               <Button
                 onClick={handleConnectWallet}
                 className={`${isConnectedToCorrectNetwork
@@ -270,7 +338,7 @@ export default function Home() {
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Why Choose NFTicket?
+              Why Choose NFTix?
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
               Experience the next generation of event ticketing with blockchain technology
@@ -418,6 +486,82 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Ticket Verification Dialogs */}
+      <Dialog open={isVerifyDialogOpen} onOpenChange={setIsVerifyDialogOpen}>
+        <DialogContent className="bg-slate-800 border-purple-500 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Verify Ticket</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="ticket-id" className="text-white">Enter Ticket ID</Label>
+              <Input
+                id="ticket-id"
+                value={verifyTicketId}
+                onChange={(e) => setVerifyTicketId(e.target.value)}
+                placeholder="Enter ticket token ID..."
+                className="mt-1 bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+            
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleVerifyTicket()}
+                className="flex-1 bg-purple-600 hover:bg-purple-700"
+                disabled={!verifyTicketId.trim()}
+              >
+                <QrCode className="h-4 w-4 mr-2" />
+                Verify
+              </Button>
+              <Button
+                onClick={() => setIsScannerOpen(true)}
+                variant="outline"
+                className="flex-1 border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-white"
+              >
+                Scan QR
+              </Button>
+            </div>
+
+            {verificationResult && (
+              <div className={`p-4 rounded-lg ${verificationResult.isValid ? 'bg-green-900/30 border border-green-500' : 'bg-red-900/30 border border-red-500'}`}>
+                <h3 className={`font-semibold ${verificationResult.isValid ? 'text-green-400' : 'text-red-400'}`}>
+                  {verificationResult.isValid ? '✅ Valid Ticket' : '❌ Invalid Ticket'}
+                </h3>
+                <p className="text-sm mt-2 text-gray-300">{verificationResult.message}</p>
+                {verificationResult.isValid && verificationResult.ticket && (
+                  <div className="mt-3 text-sm space-y-1">
+                    <p><strong>Token ID:</strong> {verificationResult.ticket.tokenId}</p>
+                    <p><strong>Event:</strong> {verificationResult.event?.title}</p>
+                    <p><strong>Owner:</strong> {formatAddress(verificationResult.ticket.owner)}</p>
+                    <p><strong>Purchase Date:</strong> {new Date(verificationResult.ticket.purchaseTime).toLocaleDateString()}</p>
+                    <p><strong>Status:</strong> {verificationResult.ticket.isUsed ? 'Used' : 'Unused'}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Scanner Dialog */}
+      <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+        <DialogContent className="bg-slate-800 border-purple-500 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Scan QR Code</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {isScannerOpen && <QrScanner onScanSuccess={onScanSuccess} onScanFailure={onScanFailure} />}
+            <Button
+              onClick={() => setIsScannerOpen(false)}
+              variant="outline"
+              className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Footer */}
       <footer className="border-t border-white/10 backdrop-blur-lg bg-black/20 py-8">
         <div className="container mx-auto px-4">
@@ -427,7 +571,7 @@ export default function Home() {
                 <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
                   <Ticket className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-white">NFTicket</h3>
+                <h3 className="text-xl font-bold text-white">NFTix</h3>
               </div>
               <p className="text-gray-400 text-sm">
                 The future of event ticketing on the blockchain. Secure, transparent, and fraud-proof.
@@ -466,7 +610,7 @@ export default function Home() {
           </div>
 
           {/* <div className="border-t border-white/10 mt-8 pt-8 text-center text-sm text-gray-400">
-            <p>&copy; 2025 NFTicket. Built on blockchain technology for a transparent future.</p>
+            <p>&copy; 2025 NFTix. Built on blockchain technology for a transparent future.</p>
           </div> */}
         </div>
       </footer>

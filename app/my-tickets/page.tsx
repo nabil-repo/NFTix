@@ -170,7 +170,7 @@ export default function MyTickets() {
               <div style={{ margin: '16px auto', width: 128, background: 'white', padding: 8, borderRadius: 8 }}>
                 <QRCode value={JSON.stringify({ tokenId: ticketToDownload.tokenId, contract: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS, network: 'somnia-testnet' })} size={112} level="H" />
               </div>
-              <div style={{ fontSize: 12, color: '#a1a1aa', textAlign: 'center' }}>NFTicket - {new Date().getFullYear()}</div>
+              <div style={{ fontSize: 12, color: '#a1a1aa', textAlign: 'center' }}>NFTix - {new Date().getFullYear()}</div>
             </div>
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function MyTickets() {
               <Ticket className="h-4 w-4 text-white" />
             </div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              NFTicket
+              NFTix
             </h1>
           </div>
         </div>

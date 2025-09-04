@@ -83,7 +83,7 @@ export const NFT_TICKET_ABI = [
 ];
 
 // Contract address (will be set after deployment)
-export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x1ded6Fb69011cd3b82C7e6218d24E12f083e967F';
+export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
 // Somnia testnet configuration
 export const SOMNIA_TESTNET_CONFIG = {

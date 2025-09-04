@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract NFTicket is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
+contract NFTix is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
@@ -62,7 +62,7 @@ contract NFTicket is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
     event TicketBought(uint256 indexed tokenId, address indexed buyer, uint256 price);
     event TicketTransferred(uint256 indexed tokenId, address indexed from, address indexed to, uint256 price);
 
-    constructor() ERC721("NFTicket", "NFTIX") Ownable() {}
+    constructor() ERC721("NFTix", "NFTIX") Ownable() {}
 
     // -----------------------------
     // EVENT CREATION & MINTING
