@@ -11,8 +11,6 @@
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@next/swc-wasm-nodejs": "13.5.1",
-    "@nomicfoundation/hardhat-network-helpers": "^3.0.0",
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@openzeppelin/contracts": "^4.9.6",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -78,14 +76,9 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-ignition": "^3.0.0",
-    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
-    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.0",
     "dotenv": "^17.2.1",
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",
-    "hardhat": "^3.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2",
-    "viem": "^2.34.0"
+    "typescript": "^5.9.2"
   }
 }
