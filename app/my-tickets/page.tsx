@@ -13,11 +13,10 @@ import { formatAddress, contractService } from '@/lib/contracts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import QRCode from 'react-qr-code'; // Import QRCode
-
-
 import { Html5Qrcode } from 'html5-qrcode';
 import { Label } from '@/components/ui/label';
 import QrScanner from '@/components/QrScanner';
+import Image from 'next/image';
 
 
 export default function MyTickets() {
@@ -140,7 +139,7 @@ export default function MyTickets() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      
+
       {/* Hidden Ticket Preview for PNG Download */}
       {ticketToDownload && (
         <div style={{ position: 'fixed', top: 0, left: 0, zIndex: 5, padding: 24 }} ref={ticketPreviewRef}>
@@ -185,9 +184,11 @@ export default function MyTickets() {
             </Link>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+            {/* <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
               <Ticket className="h-4 w-4 text-white" />
-            </div>
+            </div> */}
+            <Image src="/icon2.png" width={30} height={30} alt="NFTix Logo" />
+
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
               NFTix
             </h1>

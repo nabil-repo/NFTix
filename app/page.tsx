@@ -14,6 +14,7 @@ import AlertDialog from '@/components/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import QrScanner from '@/components/QrScanner';
+import Image from 'next/image';
 
 const features = [
   {
@@ -230,9 +231,10 @@ export default function Home() {
       <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-slate-900/80 backdrop-blur-lg shadow-lg' : 'bg-transparent'}`}>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-              <Ticket className="h-6 w-6 text-white" />
-            </div>
+            {/* <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center"> */}
+              {/* <Ticket className="h-6 w-6 text-white" /> */}
+              <Image src="/icon2.png" alt="Ticket Icon" width={60} height={10} />
+            {/* </div> */}
             <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
               NFTix
             </h1>
@@ -345,9 +347,9 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
+              <Card key={index} className="shine bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
                 <CardHeader className="text-center">
                   <div className="mx-auto bg-gradient-to-br from-purple-500 to-blue-500 p-4 rounded-full w-fit mb-4">
                     {feature.icon}

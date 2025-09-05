@@ -83,7 +83,7 @@ export const NFT_TICKET_ABI = [
 ];
 
 // Contract address (will be set after deployment)
-export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+export const NFT_TICKET_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x520015670fd1F2774d3A68412AaC740309cE7607';
 
 // Somnia testnet configuration
 export const SOMNIA_TESTNET_CONFIG = {
@@ -191,6 +191,7 @@ export const contractService = {
     );
 
     const receipt = await tx.wait();
+    console.log('Transaction receipt:', receipt);
 
     // Extract event ID from logs
     const eventCreatedLog = receipt.logs.find((log: any) => {
@@ -205,6 +206,7 @@ export const contractService = {
       const eventId = ethers.getBigInt(eventCreatedLog.topics[1]);
       return { eventId: eventId.toString(), txHash: receipt.hash };
     }
+    console.error('EventCreated log not found in transaction receipt:', receipt);
 
     throw new Error('Event creation failed');
   },
@@ -374,9 +376,9 @@ export const contractService = {
     const timeLeft = lastTransferTime + TRANSFER_COOLDOWN - now;
 
 
-    if (lastTransferTime + TRANSFER_COOLDOWN > now) {
-      throw new Error('Transfer cooldown in effect , time left: ' + formatTimeLeft(timeLeft));
-    }
+    // if (lastTransferTime + TRANSFER_COOLDOWN > now) {
+    //   throw new Error('Transfer cooldown in effect , time left: ' + formatTimeLeft(timeLeft));
+    // }
 
 
     const priceInWei = ethers.parseEther(price);

@@ -9,6 +9,8 @@ import { formatAddress, formatPrice, getEventStatus } from "@/lib/contracts";
 import { ArrowLeft, Ticket } from "lucide-react";
 import Link from 'next/link';
 import AlertDialog from "@/components/alert-dialog";
+import Image from 'next/image';
+
 
 interface EventMetadata {
     image?: string;
@@ -110,9 +112,11 @@ export default function ManagePage() {
                         </Link>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                        {/* <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
                             <Ticket className="h-4 w-4 text-white" />
-                        </div>
+                        </div> */}
+                        <Image src="/icon2.png" width={30} height={30} alt="NFTix Logo" />
+
                         <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                             NFTix
                         </h1>
@@ -121,7 +125,7 @@ export default function ManagePage() {
             </header>
             <div className="max-w-6xl mx-auto">
                 {/* Improved Header */}
-                <header className="mb-10">
+                <header className="mb-10 mt-6">
                     <div className="flex items-center gap-4 mb-2">
                         <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
                             <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M12 2a2 2 0 0 1 2 2v1h2.5A2.5 2.5 0 0 1 19 7.5V9h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1v1.5A2.5 2.5 0 0 1 16.5 17H14v1a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-1H7.5A2.5 2.5 0 0 1 5 15.5V14H4a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h1V7.5A2.5 2.5 0 0 1 7.5 5H10V4a2 2 0 0 1 2-2Zm0 2V4v1.5A.5.5 0 0 1 11.5 6H7.5A.5.5 0 0 0 7 6.5V10a2 2 0 0 1-2 2H4v2h1a2 2 0 0 1 2 2v3.5c0 .28.22.5.5.5H10a2 2 0 0 1 2 2v1a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5V14a2 2 0 0 1 2-2h1v-2h-1a2 2 0 0 1-2-2V6.5a.5.5 0 0 0-.5-.5h-4A.5.5 0 0 1 12 5.5V4Z" /></svg>

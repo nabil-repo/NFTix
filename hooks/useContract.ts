@@ -53,6 +53,7 @@ export const useContract = () => {
     } catch (error: any) {
       const errorMessage = error.reason || error.message || 'Failed to create event';
       setError(errorMessage);
+      console.error('Create Event Error:', error);
       throw new Error(errorMessage);
     } finally {
       setIsLoading(false);

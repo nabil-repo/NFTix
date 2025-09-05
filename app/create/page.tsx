@@ -13,7 +13,7 @@ import { useContract } from '@/hooks/useContract';
 import { useRouter } from 'next/navigation';
 import { set } from 'date-fns';
 import AlertDialog from '@/components/alert-dialog';
-
+import Image from 'next/image';
 
 export default function CreateEvent() {
   const router = useRouter();
@@ -159,9 +159,9 @@ export default function CreateEvent() {
             </Link>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-              <Ticket className="h-4 w-4 text-white" />
-            </div>
+            {/* <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center"> */}
+            <Image src="/icon2.png" width={30} height={30} alt="NFTix Logo" />
+            {/* </div> */}
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
               NFTix
             </h1>

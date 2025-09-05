@@ -13,6 +13,8 @@ import { formatAddress } from '@/lib/contracts';
 import { contractService } from '@/lib/contracts';
 import ListMyTicket from '@/components/ui/listMyTicket';
 import AlertDialog from '@/components/alert-dialog';
+import Image from 'next/image';
+
 
 export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -117,6 +119,24 @@ export default function Marketplace() {
     }
   };
 
+  function getEventImage(event: any): string {
+    if (event && event.metadataURI) {
+      if (typeof event.metadataURI === 'string' && event.metadataURI.startsWith('data:application/json;base64,')) {
+        try {
+          const base64 = event.metadataURI.replace('data:application/json;base64,', '');
+          const json = JSON.parse(typeof atob !== 'undefined' ? atob(base64) : Buffer.from(base64, 'base64').toString('utf-8'));
+          return json.image || '';
+        } catch (err) {
+          return '';
+        }
+      }
+      if (typeof event.metadataURI === 'object' && event.metadataURI.image) {
+        return event.metadataURI.image;
+      }
+    }
+    return '';
+  }
+
   const loadMarketplaceData = async () => {
     setIsLoading(true);
     try {
@@ -146,7 +166,8 @@ export default function Marketplace() {
           timeLeft: "—", // you can calculate based on event.date
           maxTickets: event.maxTickets,
           soldTickets: event.soldTickets,
-          organizer: event.organizer
+          organizer: event.organizer,
+          image: getEventImage(event),
         });
       }
 
@@ -220,9 +241,11 @@ export default function Marketplace() {
             </Link>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+            {/* <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
               <Ticket className="h-4 w-4 text-white" />
-            </div>
+            </div> */}
+            <Image src="/icon2.png" width={30} height={30} alt="NFTix Logo" />
+
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
               NFTix
             </h1>
@@ -351,9 +374,11 @@ export default function Marketplace() {
               {filteredListings.map((listing) => (
                 <Card key={listing.id} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 overflow-hidden group">
                   <div className="relative h-48 overflow-hidden">
-                    <img
-                      src="https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=400"
+                    <Image
+                      src={listing.image}
                       alt={listing.eventTitle}
+                      width={200}
+                      height={200}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                     <div className="absolute top-4 right-4 flex flex-col space-y-2">
@@ -367,11 +392,11 @@ export default function Marketplace() {
                         </Badge>
                       )}
                     </div>
-                    <div className="absolute top-4 left-4">
+                    {/* <div className="absolute top-4 left-4">
                       <Badge className="bg-red-600/90 text-white border-0">
                         {listing.timeLeft} left
                       </Badge>
-                    </div>
+                    </div> */}
                     <div className="absolute bottom-4 left-4">
                       <Badge className="bg-blue-600/90 text-white border-0 font-mono">
                         #{listing.tokenId}
