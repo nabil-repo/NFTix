@@ -230,7 +230,7 @@ export default function MyTickets() {
                     <QrCode className="h-5 w-5 mr-2" />
                     Scan QR Code
                   </Button>
-                  <div className="mt-4">
+                  {/* <div className="mt-4">
                     <Label htmlFor="qr-upload" className="text-white">Upload QR Code</Label>
                     <Input
                       id="qr-upload"
@@ -250,7 +250,7 @@ export default function MyTickets() {
                       }}
                       className="bg-slate-700 border-slate-600 text-white mt-2"
                     />
-                  </div>
+                  </div> */}
                 </div>
                 {verificationResult && (
                   <div className="mt-4 p-4 rounded-lg bg-slate-700">
