@@ -204,14 +204,14 @@ export default function MyTickets() {
               Your collection of event memories on the blockchain
             </p>
             <Dialog open={isVerifyDialogOpen} onOpenChange={setIsVerifyDialogOpen}>
-              <DialogTrigger asChild>
+              {/* <DialogTrigger asChild>
                 <Button
                   className="mt-4 bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white border-0"
                 >
                   <QrCode className="h-5 w-5 mr-2" />
                   Verify a Ticket
                 </Button>
-              </DialogTrigger>
+              </DialogTrigger> */}
               <DialogContent className="bg-slate-800 border-purple-500 text-white">
                 <DialogHeader>
                   <DialogTitle>Verify Ticket</DialogTitle>
