@@ -61,12 +61,12 @@ export default function WalletConnect() {
       }
     } catch (error: any) {
       console.error('Connection failed:', error);
-      
+
       if (error.message.includes('Redirecting to MetaMask app')) {
         // Don't show error for redirect
         return;
       }
-      
+
       if (isMobile) {
         alert('Please install MetaMask mobile app or use the browser within MetaMask app.');
       } else {
@@ -104,7 +104,7 @@ export default function WalletConnect() {
             Disconnect
           </Button>
         </div>
-        
+
         <ConnectionStatus
           isConnected={isConnected}
           isLoading={isLoading}
@@ -132,7 +132,7 @@ export default function WalletConnect() {
           )}
           {isLoading ? 'Connecting...' : isMobile && !hasMetaMask ? 'Connect via MetaMask App' : 'Connect Wallet'}
         </Button>
-        
+
         {!hasMetaMask && (
           <Button
             variant="outline"
@@ -154,14 +154,14 @@ export default function WalletConnect() {
           </div>
         )}
       </div>
-      
+
       <ConnectionStatus
         isConnected={isConnected}
         isLoading={isLoading}
         isMobile={isMobile}
         address={address}
       />
-      
+
       {showMobileInfo && (
         <MobileWalletInfo onClose={() => setShowMobileInfo(false)} />
       )}

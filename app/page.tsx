@@ -295,7 +295,7 @@ export default function Home() {
                 <QrCode className="h-4 w-4 mr-2" />
                 Verify Ticket
               </Button>
-              <Button
+              {/* <Button
                 onClick={handleConnectWallet}
                 className={`${isConnectedToCorrectNetwork
                   ? 'disabled:opacity-100 bg-green-600 hover:bg-green-700 '
@@ -304,7 +304,8 @@ export default function Home() {
                 disabled={!!account}
               >
                 {account ? 'Connected ' + account.slice(0, 6) + '...' + account.slice(-4) : 'Connect Wallet'}
-              </Button>
+              </Button> */}
+              <WalletConnect />
             </nav>
           </div>
         )}
