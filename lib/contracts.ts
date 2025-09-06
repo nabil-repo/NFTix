@@ -376,9 +376,9 @@ export const contractService = {
     const timeLeft = lastTransferTime + TRANSFER_COOLDOWN - now;
 
 
-    // if (lastTransferTime + TRANSFER_COOLDOWN > now) {
-    //   throw new Error('Transfer cooldown in effect , time left: ' + formatTimeLeft(timeLeft));
-    // }
+    if (lastTransferTime + TRANSFER_COOLDOWN > now) {
+      throw new Error('Transfer cooldown in effect , time left: ' + formatTimeLeft(timeLeft));
+    }
 
 
     const priceInWei = ethers.parseEther(price);
