@@ -174,7 +174,7 @@ export default function CreateEvent() {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-4">Create Your Event</h1>
             <p className="text-gray-300 text-lg">
-              Deploy your event as an NFT collection on the Somnia blockchain
+              Create your event as an NFT Ticket collection on the Somnia blockchain
             </p>
           </div>
 
@@ -347,14 +347,7 @@ export default function CreateEvent() {
                   </label>
                 </div>
 
-                {/* Smart Contract Info */}
-                <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
-                  <h3 className="text-white font-semibold mb-2">Smart Contract Deployment</h3>
-                  <p className="text-gray-300 text-sm">
-                    Your event will be deployed as a smart contract on the Somnia testnet.
-                    Each ticket will be minted as an NFT with unique metadata and anti-fraud protection.
-                  </p>
-                </div>
+
 
                 {/* Submit Button */}
                 <Button
@@ -369,10 +362,10 @@ export default function CreateEvent() {
                   ) : isLoading ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-2"></div>
-                      Deploying Smart Contract...
+                      Creating Event...
                     </>
                   ) : (
-                    'Create Event & Deploy Contract'
+                    'Create Event'
                   )}
                 </Button>
               </form>
