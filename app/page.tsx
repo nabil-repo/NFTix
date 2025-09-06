@@ -272,7 +272,7 @@ export default function Home() {
             >
               {account ? 'Connected ' + account.slice(0, 6) + '...' + account.slice(-4) : 'Connect Wallet'}
             </Button> */}
-            {isMobileDevice() && <WalletConnect />}
+            {!isMobileDevice() && <WalletConnect />}
             <button className="md:hidden text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <Menu className="h-6 w-6" />
             </button>
