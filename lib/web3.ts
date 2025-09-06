@@ -226,7 +226,7 @@ export const connectMobileWallet = async () => {
       console.log('📱 Android device detected, attempting MetaMask app connection...');
 
       // Try to open MetaMask app with deep link
-      const deepLink = generateMetaMaskDeepLink();
+      const deepLink = generateMetaMaskDeepLink('https://nftix1.vercel.app');
 
       // Use intent URL for better Android integration
       const intentUrl = `intent://${window.location.hostname}${window.location.pathname}#Intent;scheme=https;package=io.metamask;end`;
