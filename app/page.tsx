@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import QrScanner from '@/components/QrScanner';
 import Image from 'next/image';
+import WalletConnect from '@/components/WalletConnect';
 
 const features = [
   {
@@ -261,7 +262,7 @@ export default function Home() {
             </Dialog>
           </nav>
           <div className="flex items-center space-x-4">
-            <Button
+            {/* <Button
               onClick={handleConnectWallet}
               className={`${isConnectedToCorrectNetwork
                 ? 'disabled:opacity-100 bg-green-600 hover:bg-green-700 '
@@ -270,7 +271,8 @@ export default function Home() {
               disabled={!!account}
             >
               {account ? 'Connected ' + account.slice(0, 6) + '...' + account.slice(-4) : 'Connect Wallet'}
-            </Button>
+            </Button> */}
+            <WalletConnect />
             <button className="md:hidden text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <Menu className="h-6 w-6" />
             </button>
