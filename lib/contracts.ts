@@ -218,7 +218,20 @@ export const contractService = {
     }
 
     const contract = await getContract(true);
-    const priceInWei = ethers.parseEther(ticketPrice);
+
+    // Get the actual event to verify the price
+    const eventData = await contract.fetchEvent(eventId);
+    const actualTicketPrice = ethers.formatEther(eventData.ticketPrice);
+
+    console.log('🎫 Minting ticket details:');
+    console.log('Event ID:', eventId);
+    console.log('Expected price from event:', actualTicketPrice, 'STT');
+    console.log('Price being sent:', ticketPrice, 'STT');
+
+    // Use the actual event price instead of the passed price to ensure accuracy
+    const priceInWei = eventData.ticketPrice; // Use the actual price from contract
+
+    console.log('Price in wei being sent:', priceInWei.toString());
 
     const tx = await contract.mintTicket(eventId, tokenURI, {
       value: priceInWei
@@ -406,10 +419,20 @@ export const contractService = {
       throw new Error('Missing required parameters for buying ticket');
     }
 
+    const listing = await this.listings().then(list => list.find(l => l.tokenId === tokenId));
+    if (!listing) {
+      throw new Error('This ticket is not listed for sale');
+    }
+
     const contract = await getContract(true);
 
+    if (!listing.active) {
+      throw new Error('This ticket is not listed for sale');
+    }
 
-    const priceInWei = ethers.parseEther(price);
+    // Convert price from ETH to Wei
+    const priceInWei = ethers.parseEther(listing.price);
+    console.log('Buying ticket:', tokenId, 'for price:', listing.price, 'ETH (', priceInWei.toString(), 'wei)');
 
     const tx = await contract.buyTicket(tokenId, { value: priceInWei });
     const receipt = await tx.wait();

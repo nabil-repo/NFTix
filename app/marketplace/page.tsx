@@ -160,7 +160,7 @@ export default function Marketplace() {
           date: event.date,
           location: event.location,
           originalPrice: event.ticketPrice,
-          currentPrice: ticket.originalPrice, // resale listing price logic
+          currentPrice: tokenId.price, // resale listing price logic
           seller: ticket.owner,
           // verified: verifiedOrganizers[event.organizer],
           timeLeft: "—", // you can calculate based on event.date
