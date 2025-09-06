@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'NFTix - Blockchain Event Ticketing',
   description: 'Secure, transparent, and fraud-proof NFT tickets on the Somnia blockchain',
+  icons: {
+    icon: '/icon2.png',
+  },
 };
 
 export default function RootLayout({

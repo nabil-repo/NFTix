@@ -178,7 +178,7 @@ export const contractService = {
     const priceInWei = ethers.parseEther(eventData.ticketPrice);
     const dateTimestamp = Math.floor(eventData.date.getTime() / 1000);
 
-    console.log("contract:- ", await contract.getAddress());
+    //console.log("contract:- ", await contract.getAddress());
 
     const tx = await contract.createEvent(
       eventData.title,
@@ -191,7 +191,7 @@ export const contractService = {
     );
 
     const receipt = await tx.wait();
-    console.log('Transaction receipt:', receipt);
+    //console.log('Transaction receipt:', receipt);
 
     // Extract event ID from logs
     const eventCreatedLog = receipt.logs.find((log: any) => {
@@ -223,15 +223,15 @@ export const contractService = {
     const eventData = await contract.fetchEvent(eventId);
     const actualTicketPrice = ethers.formatEther(eventData.ticketPrice);
 
-    console.log('🎫 Minting ticket details:');
-    console.log('Event ID:', eventId);
-    console.log('Expected price from event:', actualTicketPrice, 'STT');
-    console.log('Price being sent:', ticketPrice, 'STT');
+    // console.log('🎫 Minting ticket details:');
+    // console.log('Event ID:', eventId);
+    // console.log('Expected price from event:', actualTicketPrice, 'STT');
+    // console.log('Price being sent:', ticketPrice, 'STT');
 
     // Use the actual event price instead of the passed price to ensure accuracy
     const priceInWei = eventData.ticketPrice; // Use the actual price from contract
 
-    console.log('Price in wei being sent:', priceInWei.toString());
+    // console.log('Price in wei being sent:', priceInWei.toString());
 
     const tx = await contract.mintTicket(eventId, tokenURI, {
       value: priceInWei
@@ -382,8 +382,8 @@ export const contractService = {
     let TRANSFER_COOLDOWN = await contract.TRANSFER_COOLDOWN();
     let lastTransferTime = await contract.lastTransferTime(tokenId);
 
-    console.log('Last transfer time:', lastTransferTime);
-    console.log('Current time:', Date.now());
+    // console.log('Last transfer time:', lastTransferTime);
+    // console.log('Current time:', Date.now());
 
     const now = BigInt(Math.floor(Date.now() / 1000));
     const timeLeft = lastTransferTime + TRANSFER_COOLDOWN - now;
@@ -432,7 +432,7 @@ export const contractService = {
 
     // Convert price from ETH to Wei
     const priceInWei = ethers.parseEther(listing.price);
-    console.log('Buying ticket:', tokenId, 'for price:', listing.price, 'ETH (', priceInWei.toString(), 'wei)');
+    // console.log('Buying ticket:', tokenId, 'for price:', listing.price, 'ETH (', priceInWei.toString(), 'wei)');
 
     const tx = await contract.buyTicket(tokenId, { value: priceInWei });
     const receipt = await tx.wait();
@@ -504,7 +504,7 @@ export const contractService = {
         }
       }
     } catch (error) {
-      console.log('Finished loading events');
+      //console.log('Finished loading events');
     }
 
     return events;
@@ -543,7 +543,7 @@ export const contractService = {
         }
       }
     } catch (error) {
-      console.log('Finished loading listings');
+      // console.log('Finished loading listings');
     }
     return listings;
   }

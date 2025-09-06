@@ -93,7 +93,7 @@ export default function CreateEvent() {
     try {
       // Combine date and time
       const eventDateTime = new Date(`${eventData.date}T${eventData.time}`);
-      console.log("event date:- " + eventDateTime.toString() + " eventData.date :" + eventData.date + " eventData.date : " + eventData.time);
+      // console.log("event date:- " + eventDateTime.toString() + " eventData.date :" + eventData.date + " eventData.date : " + eventData.time);
 
       if (eventDateTime <= new Date()) {
         setDialogTitle('Event date must be in the future');
@@ -116,7 +116,7 @@ export default function CreateEvent() {
 
 
       const metadataURI = `data:application/json;base64,${btoa(JSON.stringify(metadata1))}`;
-      console.log("metadata uri:- " + metadataURI);
+      // console.log("metadata uri:- " + metadataURI);
       const contractEventData = {
         title: eventData.title,
         description: eventData.description,

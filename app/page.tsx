@@ -98,7 +98,7 @@ export default function Home() {
             return { ...event, image: metadata.image, description: metadata.description, catagory: catagory };
           } catch (e) {
             console.error("Failed to parse metadata for event", event.eventId, e);
-            return { ...event, image: 'https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800', description: event.description };
+            return { ...event, image: '', description: event.description };
           }
         });
         if (eventsWithMetadata.length === 0) {
@@ -232,8 +232,8 @@ export default function Home() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {/* <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center"> */}
-              {/* <Ticket className="h-6 w-6 text-white" /> */}
-              <Image src="/icon2.png" alt="Ticket Icon" width={60} height={10} />
+            {/* <Ticket className="h-6 w-6 text-white" /> */}
+            <Image src="/icon2.png" alt="Ticket Icon" width={60} height={10} />
             {/* </div> */}
             <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
               NFTix
@@ -245,12 +245,12 @@ export default function Home() {
             <Link href="/manage" className="text-white hover:text-purple-300 transition-colors">Manage Event</Link>
             <Link href="/my-tickets" className="text-white hover:text-purple-300 transition-colors">My Tickets</Link>
             <Link href="/marketplace" className="text-white hover:text-purple-300 transition-colors">Marketplace</Link>
-            
+
             {/* Ticket Verification */}
             <Dialog open={isVerifyDialogOpen} onOpenChange={setIsVerifyDialogOpen}>
               <DialogTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   className="border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-white"
                 >
@@ -284,8 +284,8 @@ export default function Home() {
               <Link href="/manage" className="text-white hover:text-purple-300 transition-colors">Manage Event</Link>
               <Link href="/my-tickets" className="text-white hover:text-purple-300 transition-colors">My Tickets</Link>
               <Link href="/marketplace" className="text-white hover:text-purple-300 transition-colors">Marketplace</Link>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-white"
                 onClick={() => setIsVerifyDialogOpen(true)}
@@ -505,7 +505,7 @@ export default function Home() {
                 className="mt-1 bg-slate-700 border-slate-600 text-white"
               />
             </div>
-            
+
             <div className="flex gap-2">
               <Button
                 onClick={() => handleVerifyTicket()}

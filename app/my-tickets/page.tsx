@@ -80,7 +80,7 @@ export default function MyTickets() {
       const uniqueTickets = Array.from(new Set(userTickets.map(t => t.tokenId)))
         .map(id => userTickets.find(t => t.tokenId === id));
 
-      console.log('User tickets:', uniqueTickets);
+      //console.log('User tickets:', uniqueTickets);
       setTickets(uniqueTickets);
     } catch (error) {
       console.error('Failed to load tickets:', error);

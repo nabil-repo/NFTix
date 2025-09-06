@@ -49,7 +49,7 @@ export default function Marketplace() {
   }, [account]);
 
   const loadUserTickets = async () => {
-    console.log("loading user tickets for", account);
+    //  console.log("loading user tickets for", account);
     if (!account) return;
 
     try {
@@ -103,15 +103,15 @@ export default function Marketplace() {
 
         const isUpcoming = eventDate.getTime() > now.getTime();
 
-        console.log(
-          `Ticket #${ticket.id} - isUsed: ${ticket.isUsed}, event date: ${eventDate}, upcoming: ${isUpcoming}`
-        );
+        //console.log(
+        //  `Ticket #${ticket.id} - isUsed: ${ticket.isUsed}, event date: ${eventDate}, upcoming: ${isUpcoming}`
+        //);
 
         return !ticket.isUsed && isUpcoming;
       });
 
 
-      console.log("user tickets", nonExpiredTickets);
+      //console.log("user tickets", nonExpiredTickets);
       setUserTickets(nonExpiredTickets);
 
     } catch (err) {
@@ -144,7 +144,7 @@ export default function Marketplace() {
       const listings: any[] = [];
 
       const ticketIds = await getAllListings(); // or query indexed events
-      console.log("all listings", ticketIds[0]);
+      //console.log("all listings", ticketIds[0]);
 
       for (const tokenId of ticketIds) {
         if (tokenId === null) continue; // skip invalid tokenId
