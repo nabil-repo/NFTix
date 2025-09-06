@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Wallet, ExternalLink, Smartphone } from 'lucide-react';
-import { connectWallet, SOMNIA_TESTNET, isMobileDevice, isMetaMaskMobileBrowser, connectMobileWallet, getMetaMaskDownloadLink } from '@/lib/web3';
-import MobileWalletInfo from './MobileWalletInfo';
+import { connectWallet, SOMNIA_TESTNET, isMobileDevice, isMetaMaskMobileBrowser, connectMobileWallet } from '@/lib/web3';
 import ConnectionStatus from './ConnectionStatus';
 
 export default function WalletConnect() {
@@ -133,26 +132,7 @@ export default function WalletConnect() {
           {isLoading ? 'Connecting...' : isMobile && !hasMetaMask ? 'Connect via MetaMask App' : 'Connect Wallet'}
         </Button>
 
-        {!hasMetaMask && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-orange-400 text-orange-300 hover:bg-orange-900/50"
-            onClick={() => {
-              const downloadLink = getMetaMaskDownloadLink();
-              window.open(downloadLink, '_blank');
-            }}
-          >
-            <ExternalLink className="h-4 w-4 mr-1" />
-            {isMobile ? 'Get MetaMask App' : 'Get MetaMask'}
-          </Button>
-        )}
 
-        {isMobile && !hasMetaMask && (
-          <div className="text-xs text-gray-400 max-w-xs">
-            Install MetaMask app or use MetaMask browser
-          </div>
-        )}
       </div>
 
       <ConnectionStatus
@@ -161,10 +141,6 @@ export default function WalletConnect() {
         isMobile={isMobile}
         address={address}
       />
-
-      {showMobileInfo && (
-        <MobileWalletInfo onClose={() => setShowMobileInfo(false)} />
-      )}
     </>
   );
 }
