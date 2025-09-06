@@ -9,7 +9,7 @@
 
 _Revolutionary NFT-based event ticketing platform eliminating fraud and enabling true digital ownership_
 
-[🚀 Live Demo](http://localhost:3000) • [📖 Documentation](#documentation) • [🔗 Contract Explorer](https://shannon-explorer.somnia.network/address/0x520015670fd1F2774d3A68412AaC740309cE7607)
+[🚀 Live Demo](https://nftix1.vercel.app) • [🔗 Contract Explorer](https://shannon-explorer.somnia.network/address/0x520015670fd1F2774d3A68412AaC740309cE7607)
 
 </div>
 
@@ -40,7 +40,7 @@ _Revolutionary NFT-based event ticketing platform eliminating fraud and enabling
 ### 🛡️ **Anti-Scalping Protection**
 
 - **110% Max Resale Cap**: Prevents excessive price inflation
-- **24-Hour Transfer Cooldown**: Reduces rapid speculation (configurable)
+- **24-Hour Transfer Cooldown**: Reduces rapid speculation
 - **5% Organizer Royalty**: Ensures creators benefit from secondary sales
 - **Price Transparency**: All transactions are publicly verifiable
 
@@ -76,7 +76,7 @@ _Revolutionary NFT-based event ticketing platform eliminating fraud and enabling
 </tr>
 <tr>
 <td><strong>Styling</strong></td>
-<td>Tailwind CSS, shadcn/ui, Lucide Icons</td>
+<td>Tailwind CSS, Lucide Icons</td>
 </tr>
 <tr>
 <td><strong>Blockchain</strong></td>
@@ -111,9 +111,6 @@ cd NFTicket
 
 # Install dependencies
 npm install
-
-# Install optional WebSocket dependencies (eliminates warnings)
-npm install bufferutil utf-8-validate
 ```
 
 ### 2️⃣ Environment Setup
@@ -126,6 +123,7 @@ NEXT_PUBLIC_CONTRACT_ADDRESS=0x520015670fd1F2774d3A68412AaC740309cE7607
 
 # Somnia Testnet Configuration
 RPC_URL=https://dream-rpc.somnia.network
+#(For Conrtact Deployment only)
 PRIVATE_KEY=your_deployment_private_key_here
 ```
 
@@ -175,7 +173,7 @@ npm run dev
 
 ### 🏪 **Marketplace Features**
 
-1. **List Tickets**: Put unused tickets up for resale
+1. **List Tickets**: Put tickets up for resale
 2. **Price Discovery**: Set fair prices within anti-scalping limits
 3. **Secure Purchase**: Buy tickets through smart contract escrow
 4. **Automatic Royalties**: Original organizers receive 5% on resales
@@ -216,24 +214,6 @@ npm run dev
 - **Deployer**: `0x236322EB2858D87B2D2Efb00887845e7E7f4CB93`
 - **Block Number**: `168,344,216`
 - **Transaction**: `0x81619e8590abde43ea166f4bc9f6ecdae3216864e11207b19f527e95df4785d3`
-
----
-
-(base) PS D:\Projects\NFT_ticketing\nft-ticketing> npx hardhat compile
-[dotenv@17.2.1] injecting env (1) from .env -- tip: 🛠️ run anywhere with `dotenvx ruun -- yourcommand`
-Compiled 1 Solidity file successfully (evm target: paris).
-(base) PS D:\Projects\NFT_ticketing\nft-ticketing>
-(base) PS D:\Projects\NFT_ticketing\nft-ticketing> npx hardhat run scripts/deploy.js --network somnia-testnet
-
-=== Deployment Summary ===
-{
-"network": "somnia-testnet",
-"contractAddress": "0x520015670fd1F2774d3A68412AaC740309cE7607",
-"deployer": "0x236322EB2858D87B2D2Efb00887845e7E7f4CB93",
-"platformWallet": "0x236322EB2858D87B2D2Efb00887845e7E7f4CB93",
-"blockNumber": 168344216,
-"transactionHash": "0x81619e8590abde43ea166f4bc9f6ecdae3216864e11207b19f527e95df4785d3"
-}
 
 ---
 
@@ -359,8 +339,6 @@ PRIVATE_KEY=your_private_key_here
 ✅ Solution: Refresh page or check if transaction was successful
 ```
 
-
-
 ---
 
 ## 🔮 Roadmap
@@ -372,43 +350,9 @@ PRIVATE_KEY=your_private_key_here
 - [x] Basic marketplace
 - [x] QR code generation
 - [x] Somnia testnet deployment
-<!--
-
-### **Phase 2 - Enhancement** 🚧
-
-- [ ] **Multi-event venues** support
-- [ ] **Batch ticket operations** for large events
-- [ ] **Advanced analytics** dashboard
-- [ ] **Email notifications** system
-- [ ] **API endpoints** for third-party integration
-
-### **Phase 3 - Advanced** 📋
-
-- [ ] **Layer 2 scaling** solutions
-- [ ] **Cross-chain compatibility**
-- [ ] **DAO governance** for platform decisions
-- [ ] **Mobile app** (React Native)
-- [ ] **Enterprise features** for large organizers
-
-### **Phase 4 - Ecosystem** 🌟
-
-- [ ] **Partner integrations** (Eventbrite, etc.)
-- [ ] **White-label solutions**
-- [ ] **Revenue sharing** programs
-- [ ] **Global marketplace**
-- [ ] **Mainnet deployment** -->
-
 ---
 
-## 🌟 Acknowledgments
-
-- **Somnia Network** - For providing fast, low-cost blockchain infrastructure
-- **OpenZeppelin** - For secure smart contract foundations
-- **shadcn/ui** - For beautiful, accessible UI components
-- **Vercel** - For seamless deployment platform
-- **ethers.js** - For reliable Web3 integration
-
----
+--- -->
 
 ## 📞 Support
 
@@ -424,10 +368,6 @@ PRIVATE_KEY=your_private_key_here
 
 _NFTicket represents the next evolution in event management - where blockchain meets user experience to create fraud-proof, truly owned digital tickets._
 
-**⭐ Star this project** • **🔔 Watch for updates** • **🍴 Fork and contribute**
-
----
-
-**© 2024 NFTicket. Built with ❤️ for the decentralized future.**
+**⭐ Star this project** • **🔔 Watch for updates**
 
 </div>
