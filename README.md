@@ -58,12 +58,16 @@ _Revolutionary NFT-based event ticketing platform eliminating fraud and enabling
 - Mobile scanner for organizers
 - Real-time usage status tracking
 
-### 📱 **User Experience**
+### 📱 **User Experience & Mobile Support**
 
-- **Responsive Design**: Optimized for all devices
-- **Wallet Integration**: MetaMask and Web3 support
+- **Responsive Design**: Optimized for all devices (desktop, tablet, mobile)
+- **Android MetaMask Support**: Native integration with MetaMask mobile app
+- **Deep Link Integration**: Direct connection via MetaMask app links
+- **Mobile-First UI**: Touch-optimized interface for mobile users
+- **Auto-Detection**: Automatically detects mobile devices and MetaMask browser
+- **Connection Guidance**: Step-by-step instructions for mobile wallet setup
 - **Real-time Updates**: Live blockchain data synchronization
-- **Smooth Animations**: Enhanced user interface
+- **Smooth Animations**: Enhanced user interface across all platforms
 
 ---
 
@@ -222,6 +226,7 @@ npm run dev
 ### 🏠 **Homepage - Event Discovery**
 
 _Modern, responsive interface showcasing live events with real-time blockchain data_
+![Homepage](./public/screenshots/homepage.png)
 
 ### 🎫 **Event Creation Dashboard**
 
@@ -351,8 +356,6 @@ PRIVATE_KEY=your_private_key_here
 - [x] QR code generation
 - [x] Somnia testnet deployment
 ---
-
---- -->
 
 ## 📞 Support
 
