@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Calendar, MapPin, Users, Search, Ticket, Shield, Zap, Menu, VenetianMask, ShapesIcon, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import { useContract } from '@/hooks/useContract';
-import { connectWallet } from '@/lib/web3';
+import { connectWallet, isMobileDevice } from '@/lib/web3';
 import { contractService, formatAddress } from '@/lib/contracts';
 import AlertDialog from '@/components/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -272,7 +272,7 @@ export default function Home() {
             >
               {account ? 'Connected ' + account.slice(0, 6) + '...' + account.slice(-4) : 'Connect Wallet'}
             </Button> */}
-            <WalletConnect />
+            {isMobileDevice() && <WalletConnect />}
             <button className="md:hidden text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <Menu className="h-6 w-6" />
             </button>
