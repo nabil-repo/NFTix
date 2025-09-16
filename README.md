@@ -1,4 +1,4 @@
-# 🎫 NFTicket - Next-Generation Blockchain Event Ticketing
+# 🎫 NFTix - Next-Generation Blockchain Event Ticketing
 
 <div align="center">
 
@@ -17,7 +17,7 @@ _Revolutionary NFT-based event ticketing platform eliminating fraud and enabling
 
 ## ✨ Overview
 
-**NFTicket** transforms the traditional ticketing industry by leveraging blockchain technology to create **fraud-proof, transferable event tickets as unique NFTs**. Built on the **Somnia Testnet**, our platform ensures transparent ownership, eliminates counterfeiting, and provides a secure secondary marketplace with built-in anti-scalping mechanisms.
+**NFTix** transforms the traditional ticketing industry by leveraging blockchain technology to create **fraud-proof, transferable event tickets as unique NFTs**. Built on the **Somnia Testnet**, our platform ensures transparent ownership, eliminates counterfeiting, and provides a secure secondary marketplace with built-in anti-scalping mechanisms.
 
 ### 🎯 Key Problems We Solve
 
@@ -110,8 +110,8 @@ _Revolutionary NFT-based event ticketing platform eliminating fraud and enabling
 
 ```bash
 # Clone the repository
-git clone https://github.com/nabil-repo/NFTicket.git
-cd NFTicket
+git clone https://github.com/nabil-repo/NFTix.git
+cd NFTix
 
 # Install dependencies
 npm install
@@ -369,7 +369,7 @@ PRIVATE_KEY=your_private_key_here
 
 ### 🎫 **Built for the Future of Event Ticketing**
 
-_NFTicket represents the next evolution in event management - where blockchain meets user experience to create fraud-proof, truly owned digital tickets._
+_NFTix represents the next evolution in event management - where blockchain meets user experience to create fraud-proof, truly owned digital tickets._
 
 **⭐ Star this project** • **🔔 Watch for updates**
 

@@ -371,6 +371,8 @@ export default function MyTickets() {
                           <span className="text-lg font-bold text-purple-400">
                             {ticket.originalPrice} STT
                           </span>
+                           
+                          
                           <div className="flex space-x-2">
                             <Button
                               size="sm"
