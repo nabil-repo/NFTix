@@ -223,22 +223,56 @@ npm run dev
 
 ## 🎨 Screenshots & Demo
 
-### 🏠 **Homepage - Event Discovery**
+###  🏠 **Homepage - Event Discovery**
 
-_Modern, responsive interface showcasing live events with real-time blockchain data_
-![Homepage](./public/screenshots/homepage.png)
+*Modern, responsive interface showcasing live events with real-time blockchain data*
 
-### 🎫 **Event Creation Dashboard**
+![Screenshot 2025-09-06 204813.png](https://cdn.dorahacks.io/static/files/199530fe99ce8d862ac4b764b518952f.png)
 
-_Intuitive organizer interface for creating and managing events_
+![Screenshot 2025-09-06 194235.png](https://cdn.dorahacks.io/static/files/1995310666a079ae0d66c014c5484d82.png)
 
-### 🏪 **Integrated Marketplace**
+###  🎫 **Event Creation Dashboard**
 
-_Secure secondary market with anti-scalping protection_
+*Intuitive organizer interface for creating events*
 
-### 📱 **Mobile Experience**
+![Screenshot 2025-09-06 194254.png](https://cdn.dorahacks.io/static/files/1995310bec6355f6584ecb844fb8d0fd.png)
 
-_Fully responsive design optimized for mobile ticket management_
+
+
+###  🎫 **Event Management Dashboard**
+
+*Intuitive organizer interface for creating and Managing events*
+![Screenshot 2025-09-06 194529.png](https://cdn.dorahacks.io/static/files/199531a2a476c91bd98e646454c9320a.png)
+
+
+###  🏪 **Integrated Marketplace**
+
+*Secure secondary market with anti-scalping protection*
+
+![Screenshot 2025-09-16 204134.png](https://cdn.dorahacks.io/static/files/19953159a55c54830634b43439e945d2.png)
+
+![Screenshot 2025-09-16 204145.png](https://cdn.dorahacks.io/static/files/19953172c9ab1ba1915160e49fcb26db.png)
+
+### 🎟️ **My Tickets**
+
+*Users can view all their purchased NFT tickets in one place*
+
+![Screenshot 2025-09-06 194403.png](https://cdn.dorahacks.io/static/files/1995320b1a2aef7ed5963264128a8538.png)
+
+---
+
+### ✅ **Verify Ticket**
+
+*Organizers can scan and verify ticket authenticity at the venue*
+
+![Screenshot 2025-09-06 194506.png](https://cdn.dorahacks.io/static/files/1995321479a57a127437eee4921a6885.png)
+
+
+###  📱 **Mobile Experience**
+
+*Fully responsive design optimized for mobile ticket management*
+
+![Screenshot_2025-09-06-22-17-26-25_3ce871bb60cb313382b75690e63e41d0.jpg](https://cdn.dorahacks.io/static/files/1995312975bd4e94772aa194e888c34a.jpg)
 
 ---
 

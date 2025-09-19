@@ -48,6 +48,10 @@ export default function Home() {
   const [events, setEvents] = useState<any[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // Search filter states
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [locationQuery, setLocationQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogTitle, setDialogTitle] = useState('');
   // Lazy load state
@@ -211,9 +215,24 @@ export default function Home() {
 
   const filteredEvents = events.filter(event => {
     const now = new Date();
-    return new Date(event.date) > now &&
-      (event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.location.toLowerCase().includes(searchQuery.toLowerCase()))
+    // Filter by future events
+    if (new Date(event.date) <= now) return false;
+
+    // Filter by search query (title)
+    if (searchQuery && !event.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+
+    // Filter by location
+    if (locationQuery && !event.location.toLowerCase().includes(locationQuery.toLowerCase())) return false;
+
+    // Filter by category
+    if (selectedCategory && event.catagory?.toLowerCase() !== selectedCategory.toLowerCase()) return false;
+
+    // Filter by date
+    if (selectedDate) {
+      const eventDate = new Date(event.date).toISOString().slice(0, 10);
+      if (eventDate !== selectedDate) return false;
+    }
+    return true;
   });
 
   const handleScrollToEvents = () => {
@@ -381,14 +400,46 @@ export default function Home() {
               Find your next unforgettable experience
             </p>
 
-            <div className="max-w-md mx-auto relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                placeholder="Search events, locations, or categories..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400"
-              />
+            <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+              <div className="relative col-span-2">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  placeholder="Search by event title..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400"
+                />
+              </div>
+              <div>
+                <select
+                  value={selectedCategory}
+                  onChange={e => setSelectedCategory(e.target.value)}
+                  className="w-full bg-white/10 border-white/20 text-gray-500 rounded px-3 py-2 focus:border-purple-400"
+                >
+                  <option value="">All Categories</option>
+                  <option value="music">Music</option>
+                  <option value="sports">Sports</option>
+                  <option value="conference">Conference</option>
+                  <option value="art">Art</option>
+                  <option value="general">General</option>
+                </select>
+              </div>
+              <div>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={e => setSelectedDate(e.target.value)}
+                  className="w-full bg-white/10 border-white/20 text-gray-500 rounded px-3 py-2 focus:border-purple-400"
+                />
+              </div>
+              <div>
+                <Input
+                  placeholder="Location..."
+                  value={locationQuery}
+                  onChange={e => setLocationQuery(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400"
+                />
+              </div>
             </div>
           </div>
 
